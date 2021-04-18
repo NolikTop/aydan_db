@@ -2,10 +2,9 @@
 // Created by NolikTop on 17.04.2021.
 //
 
+#include <string>
 #include "Stream.h"
 #include "Exception.h"
-#include <string>
-#include <initializer_list>
 
 using namespace binary;
 
