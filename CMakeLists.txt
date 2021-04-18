@@ -3,4 +3,8 @@ project(aydan_db)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(aydan_db main.cpp binary/Stream.cpp binary/Stream.h binary/Exception.cpp binary/Exception.h type/byte.h)
+include_directories(src)
+
+add_subdirectory(src)
+add_subdirectory(test)
+add_subdirectory(lib/googletest)
