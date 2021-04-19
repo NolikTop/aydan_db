@@ -29,11 +29,18 @@ namespace binary {
 
 		[[nodiscard]] byte *read(size_t valueSize);
 
+		byte *readByteArray();
+		std::string readString();
+
 		void write(size_t dataSize, byte* data);
 		void writeNotReleaseValue(size_t valueSize, byte* value);
 
 		void writeNumber(size_t valueSize, int64_t value);
 		[[nodiscard]] int64_t readNumber(size_t valueSize);
+
+		void writeUnsignedVarInt(u_int64_t number);
+		u_int64_t readUnsignedVarInt();
+
 
 		void checkForWrite(size_t valueSize);
 

@@ -35,6 +35,15 @@ byte *Stream::read(size_t valueSize) {
 	return buffer + offset - valueSize;
 }
 
+byte *Stream::readByteArray() {
+
+	return nullptr;
+}
+
+std::string Stream::readString() {
+	return std::string();
+}
+
 void Stream::write(size_t dataSize, byte* data) {
 	writeNotReleaseValue(dataSize, data);
 	delete[] data;
@@ -79,6 +88,37 @@ int64_t Stream::readNumber(size_t valueSize){
 	}
 
 	return num;
+}
+
+//todo write tests
+void Stream::writeUnsignedVarInt(u_int64_t number) {
+	do {
+		byte temp = (byte) (number & 0b01111111);
+
+		number >>= 7;
+
+		if(number != 0){
+			temp |= 0b10000000;
+		}
+
+		writeUnsignedByte(temp);
+	}while(number != 0);
+}
+
+u_int64_t Stream::readUnsignedVarInt() {
+	const int maxSize = 5;
+
+	u_int64_t value = 0;
+	int size_ = 0;
+	int b;
+	while(((b = readUnsignedByte()) & 0x80) == 0x80){
+		value |= (u_int) (b & 0x7F) << (size_++ * 7);
+		if(size_ >= maxSize){
+			throw binary::Exception("VarInt too big");
+		}
+	}
+
+	return value | ((u_int64_t) (b & 0x7F) << (size_ * 7))
 }
 
 void Stream::checkForWrite(size_t valueSize) {
