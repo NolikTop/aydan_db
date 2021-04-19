@@ -8,7 +8,7 @@ using namespace binary;
 
 Exception::Exception(const char *reason) : reason(reason){}
 
-Exception::Exception(const std::string& reason) : reason(reason.c_str()) {}
+Exception::Exception(const std::string reason) : reason(reason.c_str()) {}
 
 const char *Exception::what() const noexcept {
 	return reason;

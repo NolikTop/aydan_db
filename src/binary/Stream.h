@@ -5,6 +5,8 @@
 
 #pragma once
 
+typedef unsigned char byte;
+
 namespace binary {
 
 	const int CAP_X2 = 1024 * 1024 * 10; // 10mb
@@ -13,47 +15,51 @@ namespace binary {
 		size_t size;
 		size_t offset;
 		size_t cap;
-		char *buffer;
+		byte *buffer;
 
-		Stream(size_t size, char *buffer);
+		Stream(size_t size, byte *buffer);
 
 		explicit Stream(size_t cap = 24);
 
 		~Stream();
 
-		[[nodiscard]] inline char *read(size_t len) const;
+		void clean(size_t capacity = 24);
 
-		inline void write(size_t dataSize, char* data);
-		inline void writeNotReleaseValue(size_t valueSize, char* value);
+		[[nodiscard]] std::string getBufferAsString() const;
 
-		inline void writeNumber(size_t valueSize, int64_t value);
-		[[nodiscard]] int64_t inline readNumber(size_t valueSize) const;
+		[[nodiscard]] byte *read(size_t valueSize);
 
-		inline void checkForWrite(size_t valueSize);
+		void write(size_t dataSize, byte* data);
+		void writeNotReleaseValue(size_t valueSize, byte* value);
 
-		inline void writeSignedByte(int8_t value);
-		[[nodiscard]] int8_t inline readSignedByte() const;
+		void writeNumber(size_t valueSize, int64_t value);
+		[[nodiscard]] int64_t readNumber(size_t valueSize);
 
-		inline void writeUnsignedByte(u_int8_t value);
-		[[nodiscard]] u_int8_t inline readUnsignedByte() const;
+		void checkForWrite(size_t valueSize);
 
-		inline void writeSignedShort(int16_t value);
-		[[nodiscard]] int16_t inline readSignedShort() const;
+		void writeSignedByte(int8_t value);
+		[[nodiscard]] int8_t readSignedByte();
 
-		inline void writeUnsignedShort(u_int16_t value);
-		[[nodiscard]] u_int16_t inline readUnsignedShort() const;
+		void writeUnsignedByte(u_int8_t value);
+		[[nodiscard]] u_int8_t readUnsignedByte();
 
-		inline void writeSignedInt32(int32_t value);
-		[[nodiscard]] u_int32_t inline readSignedInt32() const;
+		void writeSignedShort(int16_t value);
+		[[nodiscard]] int16_t readSignedShort();
 
-		inline void writeUnsignedInt32(u_int32_t value);
-		[[nodiscard]] u_int32_t inline readUnsignedInt32() const;
+		void writeUnsignedShort(u_int16_t value);
+		[[nodiscard]] u_int16_t readUnsignedShort();
 
-		inline void writeSignedLong(int64_t value);
-		[[nodiscard]] int64_t inline readSignedLong() const;
+		void writeSignedInt32(int32_t value);
+		[[nodiscard]] u_int32_t readSignedInt32();
 
-		inline void writeUnsignedLong(u_int64_t value);
-		[[nodiscard]] u_int64_t inline readUnsignedLong() const;
+		void writeUnsignedInt32(u_int32_t value);
+		[[nodiscard]] u_int32_t readUnsignedInt32();
+
+		void writeSignedLong(int64_t value);
+		[[nodiscard]] int64_t readSignedLong();
+
+		void writeUnsignedLong(u_int64_t value);
+		[[nodiscard]] u_int64_t readUnsignedLong();
 
 	};
 
