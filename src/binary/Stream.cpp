@@ -70,7 +70,6 @@ void Stream::writeNumber(size_t valueSize, int64_t value) {
 	}
 
 	buf[0] = (byte)(value & 0xFF);
-
 }
 
 int64_t Stream::readNumber(size_t valueSize){
@@ -118,7 +117,7 @@ u_int64_t Stream::readUnsignedVarInt() {
 		}
 	}
 
-	return value | ((u_int64_t) (b & 0x7F) << (size_ * 7))
+	return value | ((u_int64_t) (b & 0x7F) << (size_ * 7));
 }
 
 void Stream::checkForWrite(size_t valueSize) {
