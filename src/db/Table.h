@@ -6,7 +6,7 @@
 
 namespace db {
 
-	struct Table {
+	class Table {
 		std::string name;
 		size_t rows;
 
@@ -15,7 +15,5 @@ namespace db {
 
 		COLUMN_T primaryKey;
 	};
-
-	typedef struct Table DataBase;
 
 }

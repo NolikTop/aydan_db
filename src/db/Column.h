@@ -3,10 +3,8 @@
 
 namespace db {
 
-	struct Column {
+	class Column {
 
 	};
-
-	typedef struct Column Column;
 
 }

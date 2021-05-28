@@ -5,7 +5,7 @@
 
 namespace parser {
 
-	struct Token {
+	class Token {
 		[[nodiscard]] virtual std::string getStringId() const = 0;
 	};
 

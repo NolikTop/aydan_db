@@ -7,13 +7,14 @@
 
 namespace parser {
 
-	struct UserValueToken : Token {
+	template<typename T>
+	class UserValueToken : Token {
 		db::COLUMN_T type;
-		void* value;
+		T value;
 
 		[[nodiscard]] std::string getStringId() const override;
 
-		UserValueToken(db::COLUMN_T type, void* value);
+		UserValueToken(db::COLUMN_T type, T value);
 
 		[[nodiscard]] std::string toString() const;
 	};

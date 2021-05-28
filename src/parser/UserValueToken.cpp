@@ -5,34 +5,37 @@
 
 using namespace parser;
 
-UserValueToken::UserValueToken(db::COLUMN_T type, void *value) : type(type), value(value) {}
+template<typename T>
+UserValueToken<T>::UserValueToken(db::COLUMN_T type, T value) : type(type), value(value) {}
 
 // только для дебага
-std::string UserValueToken::toString() const {
+template<typename T>
+std::string UserValueToken<T>::toString() const {
 	std::string str_val;
 
 	switch(this->type){
 		case UT_BOOL:
-			if(*((bool *)this->value)){
+			if(this->value){
 				str_val = "true";
 			}else{
 				str_val = "false";
 			}
 			return "(bool) " + str_val;
 		case UT_FLOAT:
-			str_val = std::to_string(*((float*)this->value));
+			str_val = std::to_string(this->value);
 			return "(float) " + str_val;
 		case UT_NUMBER:
-			str_val = std::to_string(*((int*)this->value));
+			str_val = std::to_string(this->value);
 			return "(number) " + str_val;
 		case UT_STR:
-			str_val = *((std::string*)this->value);
+			str_val = this->value;
 			return "(string) \"" + str_val + "\"";
 		default:
 			return "unknown type (" + std::to_string(this->type) + ")"
 	}
 }
 
-std::string UserValueToken::getStringId() const {
+template<typename T>
+std::string UserValueToken<T>::getStringId() const {
 	return "";
 }
