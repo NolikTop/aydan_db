@@ -20,10 +20,12 @@ namespace parser {
 		static std::string nextNameValue(std::string::iterator &it, std::string::iterator end);
 		static Token* nextUserValue(std::string::iterator &it, std::string::iterator end);
         static UserValueToken<std::string>* nextStringVal(std::string::iterator &it, std::string::iterator end);
+		static db::Column* readColumn(std::string::iterator &it, std::string::iterator end);
 
 		static void parse(std::string query);
 
 		static void runCreate(std::string &query, std::string::iterator &it);
+
 		static void runDelete(std::string &query, std::string::iterator &it);
 		static void runDrop(std::string &query, std::string::iterator &it);
 		static void runInsert(std::string &query, std::string::iterator &it);

@@ -1,5 +1,6 @@
 #include <sstream>
 #include <db/Column.h>
+#include <db/Table.h>
 #include "Operation.h"
 #include "Parser.h"
 #include "Exception.h"
@@ -164,6 +165,14 @@ UserValueToken<std::string>* Parser::nextStringVal(std::string::iterator &it, st
     return new UserValueToken<std::string>(UT_STR, word);
 }
 
+db::Column *Parser::readColumn(std::string::iterator &it,
+                               std::string::iterator end) {
+	auto name = nextNameValue(it, end);
+
+	auto type = nextKeyword(it, end);
+
+}
+
 void Parser::parse(std::string query) {
 	auto it = query.begin();
 
@@ -211,9 +220,13 @@ void Parser::runCreate(std::string &query,
 	}
 
 	auto* cols = new list::List<db::Column>();
+	for(auto col = readColumn(it, end); col != nullptr; col = readColumn(it, end)){
+		cols->push_back(col);
+	}
 
-	//todo сделать db::Column
+	auto table = new db::Table(tableName, 0, cols);
 
+	// todo создание файлов
 }
 
 void Parser::runDelete(std::string &query,
