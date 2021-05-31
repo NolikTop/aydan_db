@@ -5,11 +5,12 @@ namespace list {
 
 	template<typename T>
 	class ListElement {
+	public:
 		ListElement<T>* prev;
-		T element;
+		T* element;
 		ListElement<T>* next;
 
-		explicit ListElement(T element);
+		explicit ListElement(T* element);
 		ListElement(ListElement<T>* prev, ListElement<T>* next, T element);
 	};
 
