@@ -7,7 +7,7 @@
 namespace parser::type {
 
 	class SignedByteToken : public TypeToken {
-
+		[[nodiscard]] std::string getStringId() const override
 	};
 
 }

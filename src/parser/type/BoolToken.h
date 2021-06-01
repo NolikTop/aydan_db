@@ -7,7 +7,8 @@
 namespace parser::type {
 
 	class BoolToken : public TypeToken {
-
+	public:
+		[[nodiscard]] std::string getStringId() const override;
 	};
 
 }

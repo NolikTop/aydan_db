@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "SizedTypeToken.h"
+#include "TypeToken.h"
 
 namespace parser::type {
 
-	class StringToken : public SizedTypeToken {
-
+	class StringToken : public TypeToken {
+		[[nodiscard]] std::string getStringId() const override;
 	};
 
 }

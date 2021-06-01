@@ -16,19 +16,6 @@ namespace db {
 	const COLUMN_T CT_UNSIGNED_LONG = 0x08;
 	const COLUMN_T CT_BOOL = 0x09;
 	const COLUMN_T CT_FLOAT = 0x0a;
-	const COLUMN_T CT_BYTE_SIZED_STRING = 0x10;
-	const COLUMN_T CT_SHORT_SIZED_STRING = 0x11;
-	const COLUMN_T CT_INT32_SIZED_STRING = 0x12;
-
-	bool equals(const COLUMN_T &a, const COLUMN_T &b) {
-		if (
-			a >= CT_BYTE_SIZED_STRING && a <= CT_INT32_SIZED_STRING
-			&&
-			b >= CT_BYTE_SIZED_STRING && b <= CT_INT32_SIZED_STRING
-		) {
-			return true;
-		}
-		return a == b;
-	}
+	const COLUMN_T CT_STRING = 0x0b;
 
 }

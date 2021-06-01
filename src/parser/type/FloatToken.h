@@ -7,7 +7,7 @@
 namespace parser::type {
 
 	class FloatToken : public TypeToken {
-
+		[[nodiscard]] std::string getStringId() const override;
 	};
 
 }

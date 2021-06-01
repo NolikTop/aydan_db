@@ -7,7 +7,7 @@
 namespace parser::type {
 
 	class UnsignedLongToken : public TypeToken {
-
+		[[nodiscard]] std::string getStringId() const override;
 	};
 
 }

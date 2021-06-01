@@ -7,8 +7,7 @@
 namespace parser::type {
 
 	class UnsignedShortToken : public TypeToken {
-
-
+		[[nodiscard]] std::string getStringId() const override;
 	};
 
 }
