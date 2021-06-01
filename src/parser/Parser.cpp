@@ -1,11 +1,40 @@
 #include <sstream>
 #include <db/Column.h>
 #include <db/Table.h>
+#include <parser/type/SignedByteToken.h>
+#include <parser/type/UnsignedByteToken.h>
+#include <parser/type/SignedShortToken.h>
+#include <parser/type/UnsignedShortToken.h>
+#include <parser/type/SignedInt32Token.h>
+#include <parser/type/UnsignedInt32Token.h>
+#include <parser/type/SignedLongToken.h>
+#include <parser/type/UnsignedLongToken.h>
+#include <parser/type/BoolToken.h>
+#include <parser/type/FloatToken.h>
+#include <parser/type/StringToken.h>
 #include "Operation.h"
 #include "Parser.h"
 #include "Exception.h"
 
 using namespace parser;
+
+using namespace parser::type;
+
+void Parser::initTypes() {
+	types = new list::List<parser::type::TypeToken>();
+
+	types->push_back(new SignedByteToken());
+	types->push_back(new UnsignedByteToken());
+	types->push_back(new SignedShortToken());
+	types->push_back(new UnsignedShortToken());
+	types->push_back(new SignedInt32Token());
+	types->push_back(new UnsignedInt32Token());
+	types->push_back(new SignedLongToken());
+	types->push_back(new UnsignedLongToken());
+	types->push_back(new BoolToken());
+	types->push_back(new FloatToken());
+	types->push_back(new StringToken());
+}
 
 void Parser::skipEmpty(std::string::iterator &it, std::string::iterator end) {
     for(; isspace(*it) || *it == ',' && it != end; it++); // скипаем до момента когда можно будет читать
@@ -174,6 +203,10 @@ db::Column *Parser::readColumn(std::string::iterator &it,
 }
 
 void Parser::parse(std::string query) {
+	if(types == nullptr){
+		initTypes();
+	}
+
 	auto it = query.begin();
 
 	auto opRaw = nextKeyword(it, query.end());

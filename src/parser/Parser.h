@@ -6,11 +6,15 @@
 #include "Operation.h"
 #include "UserValueToken.h"
 #include <list/List.h>
+#include <parser/type/TypeToken.h>
 
 namespace parser {
 
 	class Parser {
 	public:
+		static list::List<parser::type::TypeToken>* types;
+
+		static void initTypes();
 
 	    static void skipEmpty(std::string::iterator &it, std::string::iterator end);
 
