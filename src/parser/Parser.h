@@ -16,13 +16,13 @@ namespace parser {
 
 		static void initTypes();
 
-	    static void skipEmpty(std::string::iterator &it, std::string::iterator end);
+	    static void skipEmpty(std::string::iterator &it, std::string::iterator end, bool skipComma = true);
 
 	    static std::string nextWord(std::string::iterator &it, std::string::iterator end, const std::function<bool(char)>& check = nullptr);
 		static std::string nextWord(std::string::iterator &it, std::string::iterator end, int (*check)(int) = nullptr);
 		static std::string nextKeyword(std::string::iterator &it, std::string::iterator end);
 		static std::string nextNameValue(std::string::iterator &it, std::string::iterator end);
-		static Token* nextUserValue(std::string::iterator &it, std::string::iterator end);
+		static UserValueBaseToken* nextUserValue(std::string::iterator &it, std::string::iterator end);
         static UserValueToken<std::string>* nextStringVal(std::string::iterator &it, std::string::iterator end);
 		static db::Column* readColumn(std::string::iterator &it, std::string::iterator end);
 

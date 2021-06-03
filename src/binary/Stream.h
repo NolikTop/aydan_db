@@ -29,8 +29,11 @@ namespace binary {
 
 		[[nodiscard]] byte *read(size_t valueSize);
 
-		byte *readByteArray();
-		std::string readString();
+		void writeByteString(const std::string& value);
+		[[nodiscard]] std::string readByteString();
+
+		void writeShortString(const std::string& value);
+		[[nodiscard]] std::string readShortString();
 
 		void write(size_t dataSize, byte* data);
 		void writeNotReleaseValue(size_t valueSize, byte* value);
@@ -57,7 +60,7 @@ namespace binary {
 		[[nodiscard]] u_int16_t readUnsignedShort();
 
 		void writeSignedInt32(int32_t value);
-		[[nodiscard]] u_int32_t readSignedInt32();
+		[[nodiscard]] int32_t readSignedInt32();
 
 		void writeUnsignedInt32(u_int32_t value);
 		[[nodiscard]] u_int32_t readUnsignedInt32();

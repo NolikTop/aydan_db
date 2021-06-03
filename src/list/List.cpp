@@ -4,6 +4,14 @@
 
 using namespace list;
 
+
+template<typename T>
+size_t List<T>::len() {
+	size_t count = 0;
+	for(auto i = this->first; i != nullptr; i = i->next, count++){}
+	return count;
+}
+
 template<typename T>
 void List<T>::push_back(T* value) {
 	if(this->last == nullptr){

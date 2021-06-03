@@ -6,16 +6,9 @@ namespace db {
 	typedef unsigned char COLUMN_T;
 
 	const COLUMN_T CT_UNKNOWN = 0x00;
-	const COLUMN_T CT_SIGNED_BYTE = 0x01;
-	const COLUMN_T CT_UNSIGNED_BYTE = 0x02;
-	const COLUMN_T CT_SIGNED_SHORT = 0x03;
-	const COLUMN_T CT_UNSIGNED_SHORT = 0x04;
-	const COLUMN_T CT_SIGNED_INT32 = 0x05;
-	const COLUMN_T CT_UNSIGNED_INT32 = 0x06;
-	const COLUMN_T CT_SIGNED_LONG = 0x07;
-	const COLUMN_T CT_UNSIGNED_LONG = 0x08;
-	const COLUMN_T CT_BOOL = 0x09;
-	const COLUMN_T CT_FLOAT = 0x0a;
-	const COLUMN_T CT_STRING = 0x0b;
+	const COLUMN_T CT_NUMBER = 0x01; // signed int32
+	// от остальных типов я отказался - банально не успею доделать иначе
+	const COLUMN_T CT_BOOL = 0x02;
+	const COLUMN_T CT_STRING = 0x03;
 
 }

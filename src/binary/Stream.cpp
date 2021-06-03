@@ -35,13 +35,40 @@ byte *Stream::read(size_t valueSize) {
 	return buffer + offset - valueSize;
 }
 
-byte *Stream::readByteArray() {
+void Stream::writeByteString(const std::string& value) {
+	if(value.length() > 0xFF){
+		throw Exception("Value is too big (more than 255)");
+	}
 
-	return nullptr;
+	writeUnsignedByte(value.length());
+
+	for(auto c : value){
+		writeSignedByte(c);
+	}
 }
 
-std::string Stream::readString() {
-	return std::string();
+std::string Stream::readByteString() {
+	auto len = readUnsignedByte();
+
+	return std::string((char*)read(len), len);
+}
+
+void Stream::writeShortString(const std::string& value) {
+	if(value.length() > 0xFFFF){
+		throw Exception("Value is too big (more than 65535)");
+	}
+
+	writeUnsignedShort(value.length());
+
+	for(auto c : value){
+		writeSignedByte(c);
+	}
+}
+
+std::string Stream::readShortString() {
+	auto len = readUnsignedShort();
+
+	return std::string((char*)read(len), len);
 }
 
 void Stream::write(size_t dataSize, byte* data) {
@@ -178,7 +205,7 @@ void Stream::writeSignedInt32(int32_t value) {
 	writeNumber(sizeof(int32_t), value);
 }
 
-u_int32_t Stream::readSignedInt32(){
+int32_t Stream::readSignedInt32(){
 	return (int32_t) readNumber(sizeof(int32_t));
 }
 

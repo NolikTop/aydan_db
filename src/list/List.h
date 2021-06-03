@@ -11,7 +11,8 @@ namespace list {
 	public:
 		ListElement<T>* first;
 		ListElement<T>* last;
-		size_t len;
+
+		size_t len();
 
 		void push_back(T* value);
 		void push_front(T* value);
