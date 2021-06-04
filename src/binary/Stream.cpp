@@ -16,6 +16,10 @@ Stream::~Stream() {
 	delete[] buffer;
 }
 
+bool Stream::eof() const {
+    return offset >= size;
+}
+
 void Stream::clean(size_t capacity) {
 	cap = capacity;
 	offset = 0;

@@ -23,6 +23,8 @@ namespace binary {
 
 		~Stream();
 
+		[[nodiscard]] bool eof() const;
+
 		void clean(size_t capacity = 24);
 
 		[[nodiscard]] std::string getBufferAsString() const;

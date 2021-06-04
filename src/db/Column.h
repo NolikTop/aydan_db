@@ -15,6 +15,7 @@ namespace db {
 		COLUMN_T type;
 
 		Column(std::string name, COLUMN_T type, bool primaryKey = false, bool autoIncrement = false);
+	    [[nodiscard]] std::string toString() const;
 	};
 
 }

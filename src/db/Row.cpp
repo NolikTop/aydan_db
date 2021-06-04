@@ -1,8 +1,9 @@
+#include <sstream>
 #include "Row.h"
 #include "Exception.h"
 
 std::string db::Row::toString() const {
-	std::string res;
+	std::stringstream res;
 
 	auto vElement = values->first;
 	for(
@@ -14,10 +15,10 @@ std::string db::Row::toString() const {
 		auto col = cElement->element;
 		auto val = vElement->element;
 
-		res += col->name + ": " + val->toString();
+		res << val->toString() << " ";
 	}
 
-	return res;
+	return res.str();
 }
 
 void db::Row::deserialize(binary::Stream *bs) const {
@@ -30,9 +31,6 @@ void db::Row::deserialize(binary::Stream *bs) const {
 				break;
 			case db::CT_NUMBER:
 				val = new parser::UserValueToken<int32_t>(col->type, bs->readSignedInt32());
-				break;
-			case db::CT_BOOL:
-				val = new parser::UserValueToken<bool>(col->type, bs->readUnsignedByte() != 0);
 				break;
 			default:
 				throw Exception("Unknown type " + std::to_string(col->type));
@@ -63,9 +61,6 @@ void db::Row::serialize(binary::Stream* bs) const {
 				break;
 			case db::CT_NUMBER:
 				(dynamic_cast<parser::UserValueToken<int32_t> *>(val))->serialize(bs, col->type);
-				break;
-			case db::CT_BOOL:
-				(dynamic_cast<parser::UserValueToken<bool> *>(val))->serialize(bs, col->type);
 				break;
 			default:
 				throw Exception("Unknown type " + std::to_string(val->type));

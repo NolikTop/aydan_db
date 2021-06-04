@@ -86,6 +86,59 @@ void Table::appendRow(Row* row) {
 	dataset.close();
 }
 
+size_t Table::columnIndex(Column *col) const {
+    auto c = 0;
+    for(auto cElement = this->columns->first; cElement != nullptr; cElement = cElement->next, ++c){
+        if(col->name == cElement->element->name){
+            return c;
+        }
+    }
+
+    throw Exception("Column \"" + col->name + "\" not found");
+}
+
+template<typename T>
+list::List<db::Row> *Table::find(Column *col, const std::function<bool(T)> &check) {
+    std::ifstream dataset(this->path() + "dataset.bin");
+    if(!dataset.good()){
+        throw Exception("Couldn't open dataset.bin");
+    }
+    auto foundRows = new list::List<db::Row>();
+
+    std::string str((std::istreambuf_iterator<char>(dataset)),
+                    std::istreambuf_iterator<char>());
+
+    auto bs = new binary::Stream(str.length(), (byte*)str.c_str());
+    auto colIndex = this->columnIndex(col);
+
+    while(!bs->eof()){
+        auto row = this->getBaseRow();
+
+        row->deserialize(bs);
+        auto condVal = row->values->at(colIndex);
+        bool addRow = false;
+        if(col->type == db::CT_STRING) {
+            auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(condVal))->value;
+
+            addRow = check(val);
+        }else if(col->type == db::CT_NUMBER) {
+            auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(condVal))->value;
+
+            addRow = check(val);
+        }else{
+            throw Exception("Unknown type");
+        }
+
+        if(addRow) {
+            foundRows->push_back(row);
+        }
+    }
+
+    dataset.close();
+
+	return foundRows;
+}
+
 void Table::drop(const std::string &name) {
 	const auto path = db::dbPath + name + "/";
 
@@ -229,7 +282,6 @@ void Table::createAdditionFiles() const {
 	std::ofstream dataset(path + "dataset.bin");
 
 	if(!dataset.good()){
-		dataset.close();
 		throw Exception("Cant open file \"" + path + "dataset.bin\"");
 	}
 
@@ -248,10 +300,4 @@ Row *Table::getBaseRow() const {
 	}
 
 	return row;
-}
-
-template<typename T>
-list::List<db::Row> *tableFind<T>::operator()(Table* table, Column *col, const std::function<bool(T)>& check) {
-	// TODO!!!
-	return nullptr;
 }

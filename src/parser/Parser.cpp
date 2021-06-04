@@ -4,7 +4,6 @@
 
 #include <parser/type/Number.h>
 
-#include <parser/type/BoolToken.h>
 #include <parser/type/StringToken.h>
 #include <binary/Stream.h>
 #include <db/Row.h>
@@ -20,7 +19,6 @@ void Parser::initTypes() {
 	types = new list::List<parser::type::TypeToken>();
 
 	types->push_back(new Number());
-	types->push_back(new BoolToken());
 	types->push_back(new StringToken());
 }
 
@@ -102,7 +100,8 @@ UserValueBaseToken* Parser::nextUserValue(std::string::iterator &it,
     } // что-то иное
 
     if(word == "false" || word == "true"){
-        return new UserValueToken<bool>(db::CT_BOOL, word[0] != 'f');
+        throw Exception("Boolean values are not supported");
+        //return new UserValueToken<bool>(db::CT_BOOL, word[0] != 'f');
     }
 
     std::stringstream ss(word);
@@ -290,7 +289,7 @@ void Parser::runDelete(std::string &query,
 	throw Exception("Delete operation is not supported");
 }
 
-void Parser::runDrop(std::string &query,
+std::string Parser::runDrop(std::string &query,
                      std::string::iterator &it) {
 	auto end = query.end();
 	auto str = nextKeyword(it, end);
@@ -307,9 +306,11 @@ void Parser::runDrop(std::string &query,
 	}
 
 	db::Table::drop(tableName);
+
+	return "Table \"" + tableName + "\" successfully deleted";
 }
 
-void Parser::runInsert(std::string &query,
+std::string Parser::runInsert(std::string &query,
                        std::string::iterator &it) {
 	auto end = query.end();
 	auto str = nextKeyword(it, end);
@@ -358,23 +359,28 @@ void Parser::runInsert(std::string &query,
 
 	table->appendRow(row);
 	delete row;
+
+	std::stringstream res;
+
+    res << "Successfully inserted row in table \"";
+    res << tableName;
+    res << "\"\nRow:\n";
+
+    res << row->toString();
+
+
+
+	return res.str();
 }
 
-void Parser::runSelect(std::string &query,
+std::string Parser::runSelect(std::string &query,
                        std::string::iterator &it) {
 	auto end = query.end();
 	std::string str;
 
-	auto colsList = new list::List<std::string>();
-	bool allCols = false;
-
 	str = nextNameValue(it, end);
-	if(str == "*"){
-		allCols = true;
-	}else{
-		for(; it != end && str != "from"; str = nextNameValue(it, end)){
-			colsList->push_back(new std::string(str));
-		}
+	if(str != "*"){
+		throw Exception("You can select only all columns");
 	}
 
 	if(it == end){
@@ -383,13 +389,6 @@ void Parser::runSelect(std::string &query,
 
 	auto tableName = nextNameValue(it, end);
 	auto table = db::Table::open(tableName);
-
-	for(auto i = colsList->first; i != nullptr; i = i->next){
-		auto _str = *(i->element);
-		if(!table->hasColumn(_str)){
-			throw Exception("There is no column \"" + _str + "\" in \"" + tableName + "\" table"); // NOLINT(performance-inefficient-string-concatenation)
-		}
-	}
 
 	str = nextKeyword(it, end);
 	if(str != "where"){
@@ -422,62 +421,133 @@ void Parser::runSelect(std::string &query,
 
 	list::List<db::Row>* rows;
 
-	if(conditionCol->type == db::CT_STRING) {
-		auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(val));
+    if (str == "==") {
+        if (conditionCol->type == db::CT_STRING) {
+            auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
+            rows = table->find<std::string>(
+                conditionCol,
+                [&val](std::string value) {
+                    return value == val;
+                }
+            );
+        } else if (conditionCol->type == db::CT_NUMBER) {
+            auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+            rows = table->find<int32_t>(
+                    conditionCol,
+                    [&val](int32_t value) {
+                        return value == val;
+                    }
+            );
+        } else {
+            throw Exception("Unknown type");
+        }
+    }else if (str == "!=") {
+        if(conditionCol->type == db::CT_STRING) {
+            auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
+            rows = table->find<std::string>(
+                conditionCol,
+                [&val](std::string value) {
+                    return value != val;
+                }
+            );
+        }else if(conditionCol->type == db::CT_NUMBER) {
+            auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+            rows = table->find<int32_t>(
+                conditionCol,
+                [&val](int32_t value){
+                    return value != val;
+                }
+            );
+        }else{
+            throw Exception("Unknown type");
+        }
+    } else if (str == ">") {
+        if(conditionCol->type != db::CT_NUMBER) {
+            throw Exception("This operation supported only on numbers");
+        }
 
-		if (str == "==") {
+        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+        rows = table->find<int32_t>(
+                conditionCol,
+                [&val](int32_t value){
+                    return value > val;
+                }
+        );
+    } else if (str == "<") {
+        if(conditionCol->type != db::CT_NUMBER) {
+            throw Exception("This operation supported only on numbers");
+        }
 
-		} else if (str == ">=") {
+        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+        rows = table->find<int32_t>(
+                conditionCol,
+                [&val](int32_t value){
+                    return value < val;
+                }
+        );
+    } else if (str == ">=") {
+        if(conditionCol->type != db::CT_NUMBER) {
+            throw Exception("This operation supported only on numbers");
+        }
 
-		} else if (str == "<=") {
+        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+        rows = table->find<int32_t>(
+                conditionCol,
+                [&val](int32_t value){
+                    return value >= val;
+                }
+        );
+    } else if (str == "<=") {
+        if(conditionCol->type != db::CT_NUMBER) {
+            throw Exception("This operation supported only on numbers");
+        }
 
-		} else if (str == ">") {
+        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+        rows = table->find<int32_t>(
+                conditionCol,
+                [&val](int32_t value){
+                    return value <= val;
+                }
+        );
+    } else {
+        throw Exception("Unknown operation \"" + str + "\"");
+    }
 
-		} else if (str == "<") {
+    std::stringstream res;
 
-		} else if (str == "!=") {
+    auto rowsAmount = rows->len();
+    if(rowsAmount == 0){
+        return "Empty set";
+    }
 
-		} else {
-			throw Exception("Unknown operation \"" + str + "\"");
-		}
-	}else if(conditionCol->type == db::CT_NUMBER) {
-		if (str == "==") {
+    res << "|";
 
-		} else if (str == ">=") {
+    for(auto cols = rows->first->element->columns->first; cols != nullptr; cols = cols->next){
+        auto col = cols->element;
 
-		} else if (str == "<=") {
+        res << col->toString() << " | ";
+    }
 
-		} else if (str == ">") {
+    res << "\n";
 
-		} else if (str == "<") {
+    for(auto rElement = rows->first; rElement != nullptr; rElement = rElement->next){
+        auto row = rElement->element;
 
-		} else if (str == "!=") {
+        res << row->toString() << "\n";
+    }
 
-		} else {
-			throw Exception("Unknown operation \"" + str + "\"");
-		}
-	}else if(conditionCol->type == db::CT_BOOL){
-		if(str == "=="){
+    res << rowsAmount;
+    if(rowsAmount == 1){
+        res << " row";
+    }else{
+        res << " rows";
+    }
+    res << " in set";
 
-		}else if(str == ">="){
-
-		}else if(str == "<="){
-
-		}else if(str == ">"){
-
-		}else if(str == "<"){
-
-		}else if(str == "!="){
-
-		}else{
-			throw Exception("Unknown operation \"" + str + "\"");
-		}
-	}
-
-	auto row = table->getBaseRow();
+    return res.str();
 }
 
 void Parser::runUpdate(std::string &query,
                        std::string::iterator &it) {
-
+    throw Exception("Update operation is not supported");
 }

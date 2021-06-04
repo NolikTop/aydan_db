@@ -31,9 +31,9 @@ namespace parser {
 		static void runCreate(std::string &query, std::string::iterator &it);
 
 		static void runDelete(std::string &query, std::string::iterator &it);
-		static void runDrop(std::string &query, std::string::iterator &it);
-		static void runInsert(std::string &query, std::string::iterator &it);
-		static void runSelect(std::string &query, std::string::iterator &it);
+		static std::string runDrop(std::string &query, std::string::iterator &it);
+		static std::string runInsert(std::string &query, std::string::iterator &it);
+		static std::string runSelect(std::string &query, std::string::iterator &it);
 		static void runUpdate(std::string &query, std::string::iterator &it);
 
 	};

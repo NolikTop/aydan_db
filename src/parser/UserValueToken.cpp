@@ -14,13 +14,6 @@ std::string UserValueToken<T>::toString() const {
 	std::string str_val;
 
 	switch(this->type){
-		case db::CT_BOOL:
-			if(this->value){
-				str_val = "true";
-			}else{
-				str_val = "false";
-			}
-			return "(bool) " + str_val;
 		case db::CT_NUMBER:
 			str_val = std::to_string(this->value);
 			return "(number) " + str_val;
@@ -43,9 +36,6 @@ void UserValueToken<T>::serialize(binary::Stream *bs, db::COLUMN_T type) const {
 		case db::CT_NUMBER:
 			bs->writeSignedInt32(this->value);
 			break;
-		case db::CT_BOOL:
-			bs->writeUnsignedByte(this->type ? 1 : 0);
-			break;
 		case db::CT_STRING:
 			bs->writeShortString(this->value);
 			break;
@@ -59,9 +49,6 @@ void UserValueToken<T>::deserialize(binary::Stream *bs, db::COLUMN_T type) {
 	switch(type){
 		case db::CT_NUMBER:
 			this->value = bs->readSignedInt32();
-			break;
-		case db::CT_BOOL:
-			this->type = bs->readUnsignedByte() != 0;
 			break;
 		case db::CT_STRING:
 			this->value = bs->readShortString();

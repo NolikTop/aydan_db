@@ -35,7 +35,12 @@ namespace db {
 
 		[[nodiscard]] Row* getBaseRow() const;
 
-		static void drop(const std::string& name);
+        size_t columnIndex(Column* col) const;
+
+        template<typename T>
+        list::List<db::Row>* find( Column *col, const std::function<bool(T)>& check);
+
+        static void drop(const std::string& name);
 		static Table* open(const std::string& name);
 		static bool exists(const std::string& name);
 
@@ -44,9 +49,4 @@ namespace db {
 		void createAdditionFiles() const;
 	};
 
-
-	template<typename T>
-	struct tableFind {
-		list::List<db::Row>* operator()(Table* table, Column *col, const std::function<bool(T)>& check);
-	};
 }
