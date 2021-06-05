@@ -12,18 +12,19 @@
 #include "Exception.h"
 
 using namespace parser;
-
 using namespace parser::type;
 
-void Parser::initTypes() {
-	types = new list::List<parser::type::TypeToken>();
+list::List<parser::type::TypeToken>* Parser::types;
 
-	types->push_back(new Number());
-	types->push_back(new StringToken());
+void Parser::initTypes() {
+	Parser::types = new list::List<TypeToken>();
+
+	Parser::types->push_back(new Number());
+	Parser::types->push_back(new StringToken());
 }
 
 void Parser::skipEmpty(std::string::iterator &it, std::string::iterator end, bool skipComma) {
-    for(; isspace(*it) || (skipComma && *it == ',') && it != end; it++); // скипаем до момента когда можно будет читать
+    for(; (isspace(*it) || (skipComma && *it == ',')) && it != end; it++); // скипаем до момента когда можно будет читать
     if(it == end){
         throw Exception("Empty value until the end");
     }
@@ -57,10 +58,11 @@ std::string Parser::nextNameValue(std::string::iterator &it,
                                   std::string::iterator end) {
 	skipEmpty(it, end);
 	auto word = nextWord(it, end, [](char c){
-        return isalpha(c) || c == '`';
+        return isalpha(c) || c == '*' || c == '`';
     });
     if(word.empty()){
-        throw Exception("Empty word in name value near \"" + std::to_string(*it) + "\" symbol ");
+    	char c = *it;
+        throw Exception("Empty word in name value near \"" + std::string(1, c) + "\" symbol ");
     }
 
     if(word[0] == '`'){
@@ -169,7 +171,7 @@ db::Column *Parser::readColumn(std::string::iterator &it,
 	auto stringIdType = nextKeyword(it, end);
 	db::COLUMN_T type = db::CT_UNKNOWN;
 
-	for(auto i = types->first; i != nullptr; i = i->next){
+	for(auto i = Parser::types->first; i != nullptr; i = i->next){
 		auto t = i->element;
 		if(t->getStringId() == stringIdType){
 			type = t->getColumnType();
@@ -218,8 +220,8 @@ db::Column *Parser::readColumn(std::string::iterator &it,
 	throw Exception("Unknown data after column \"" + name + "\" data");
 }
 
-void Parser::parse(std::string query) {
-	if(types == nullptr){
+std::string Parser::parse(std::string query) {
+	if(Parser::types == nullptr){
 		initTypes();
 	}
 
@@ -227,23 +229,23 @@ void Parser::parse(std::string query) {
 
 	auto opRaw = nextKeyword(it, query.end());
 	if(opRaw == "select"){
-		Parser::runSelect(query, it);
+		return Parser::runSelect(query, it);
 	}else if(opRaw == "insert"){
-		Parser::runInsert(query, it);
+		return Parser::runInsert(query, it);
 	}else if(opRaw == "update"){
-		Parser::runUpdate(query, it);
+		return Parser::runUpdate(query, it);
 	}else if(opRaw == "delete"){
-		Parser::runDelete(query, it);
+		return Parser::runDelete(query, it);
 	}else if(opRaw == "create"){
-		Parser::runCreate(query, it);
+		return Parser::runCreate(query, it);
 	}else if(opRaw == "drop"){
-		Parser::runDrop(query, it);
+		return Parser::runDrop(query, it);
 	}else{
 		throw Exception("Unknown operation \"" + opRaw + "\"");
 	}
 }
 
-void Parser::runCreate(std::string &query,
+std::string Parser::runCreate(std::string &query,
                        std::string::iterator &it) {
     auto end = query.end();
 	auto str = nextKeyword(it, end);
@@ -277,9 +279,11 @@ void Parser::runCreate(std::string &query,
 
 	auto table = new db::Table(tableName, 0, cols, 0);
 	table->createFiles();
+
+	return "Successfully created table \"" + tableName + "\"";
 }
 
-void Parser::runDelete(std::string &query,
+std::string Parser::runDelete(std::string &query,
                        std::string::iterator &it) {
 	auto str = nextKeyword(it, query.end());
 	if(str != "from"){
@@ -287,6 +291,8 @@ void Parser::runDelete(std::string &query,
 	}
 
 	throw Exception("Delete operation is not supported");
+
+	return "Successfully deleted rows";
 }
 
 std::string Parser::runDrop(std::string &query,
@@ -338,7 +344,7 @@ std::string Parser::runInsert(std::string &query,
 		throw Exception("Unexpected end");
 	}
 
-	auto row = new db::Row();
+	auto row = table->getBaseRow();
 
 	for(auto i = table->columns->first; i != nullptr && *it != ')'; i = i->next){
 		auto col = i->element;
@@ -353,22 +359,34 @@ std::string Parser::runInsert(std::string &query,
 			val = nextUserValue(it, end);
 		}
 
-		row->columns->push_back(col);
 		row->values->push_back(val);
 	}
 
 	table->appendRow(row);
-	delete row;
 
 	std::stringstream res;
 
     res << "Successfully inserted row in table \"";
     res << tableName;
-    res << "\"\nRow:\n";
+    res << "\"";
+    res << "\n";
+
+	res << "|";
+
+	for(auto cols = row->columns->first; cols != nullptr; cols = cols->next){
+		auto col = cols->element;
+
+		res << col->toString() << " | ";
+	}
+
+	res << "\n";
+
+    res << "\nRow:\n";
 
     res << row->toString();
 
 
+	delete row;
 
 	return res.str();
 }
@@ -380,7 +398,7 @@ std::string Parser::runSelect(std::string &query,
 
 	str = nextNameValue(it, end);
 	if(str != "*"){
-		throw Exception("You can select only all columns");
+		throw Exception("You can select only all columns using '*'");
 	}
 
 	if(it == end){
@@ -416,7 +434,7 @@ std::string Parser::runSelect(std::string &query,
 
 	auto conditionVal = nextUserValue(it, end);
 	if(conditionVal->type != conditionCol->type){
-		throw Exception("Wrong type on condition value");
+		throw Exception("Wrong type in condition value");
 	}
 
 	list::List<db::Row>* rows;
@@ -463,7 +481,7 @@ std::string Parser::runSelect(std::string &query,
         }
     } else if (str == ">") {
         if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only on numbers");
+            throw Exception("This operation supported only by numbers");
         }
 
         auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
@@ -475,7 +493,7 @@ std::string Parser::runSelect(std::string &query,
         );
     } else if (str == "<") {
         if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only on numbers");
+            throw Exception("This operation supported only by numbers");
         }
 
         auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
@@ -487,7 +505,7 @@ std::string Parser::runSelect(std::string &query,
         );
     } else if (str == ">=") {
         if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only on numbers");
+            throw Exception("This operation supported only by numbers");
         }
 
         auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
@@ -499,7 +517,7 @@ std::string Parser::runSelect(std::string &query,
         );
     } else if (str == "<=") {
         if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only on numbers");
+            throw Exception("This operation supported only by numbers");
         }
 
         auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
@@ -547,7 +565,9 @@ std::string Parser::runSelect(std::string &query,
     return res.str();
 }
 
-void Parser::runUpdate(std::string &query,
+std::string Parser::runUpdate(std::string &query,
                        std::string::iterator &it) {
     throw Exception("Update operation is not supported");
+
+    return "Successfully updated rows";
 }

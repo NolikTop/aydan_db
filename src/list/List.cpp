@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <db/Row.h>
+#include <parser/type/TypeToken.h>
 #include "List.h"
 #include "Exception.h"
 
@@ -15,11 +17,11 @@ size_t List<T>::len() {
 template<typename T>
 void List<T>::push_back(T* value) {
 	if(this->last == nullptr){
-		this->first = this->last = new ListElement<T*>(value);
+		this->first = this->last = new ListElement<T>(value);
 		return;
 	}
 
-	auto el = this->last->next = new ListElement<T*>(value);
+	auto el = this->last->next = new ListElement<T>(value);
 	el->prev = this->last;
 
 	this->last = el;
@@ -43,9 +45,9 @@ template<typename T>
 void List<T>::set(size_t index, T* value) {
 	auto el = this->listElementAt(index);
 
-	delete el.element;
+	delete el->element;
 
-	el.element = value;
+	el->element = value;
 }
 
 template<typename T>
@@ -63,17 +65,17 @@ void List<T>::remove(size_t index) {
 		el->next->prev = el->prev;
 	}
 
-	delete el.element;
+	delete el->element;
 	delete el;
 }
 
 template<typename T>
 T* List<T>::at(size_t index) {
-	return this->listElementAt(index).element;
+	return this->listElementAt(index)->element;
 }
 
 template<typename T>
-ListElement<T> List<T>::listElementAt(size_t index) {
+ListElement<T>* List<T>::listElementAt(size_t index) {
 	size_t j = 0;
 	auto i = this->first;
 	for(; i != nullptr && j != index; i = i->next, ++j){}
@@ -94,3 +96,8 @@ void List<T>::clear() {
 	this->first = nullptr;
 	this->last = nullptr;
 }
+
+template class list::List<db::Row>;
+template class list::List<db::Column>;
+template class list::List<parser::UserValueBaseToken>;
+template class list::List<parser::type::TypeToken>;

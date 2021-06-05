@@ -12,10 +12,10 @@ namespace list {
 
 	struct Exception : public std::exception {
 
-		const char *reason;
+		std::string reason;
 
 		explicit Exception(const char *reason);
-		explicit Exception(const std::string& reason);
+		explicit Exception(std::string  reason);
 
 		[[nodiscard]] const char *what() const noexcept override;
 

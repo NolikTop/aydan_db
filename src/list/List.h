@@ -22,7 +22,7 @@ namespace list {
 		void remove(size_t index);
 
 		T* at(size_t index);
-		ListElement<T> listElementAt(size_t index);
+		ListElement<T>* listElementAt(size_t index);
 
 		void clear();
 	};

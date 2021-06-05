@@ -8,21 +8,12 @@ using namespace parser;
 template<typename T>
 UserValueToken<T>::UserValueToken(db::COLUMN_T type, T value) : UserValueBaseToken(type), value(value) {}
 
-// только для дебага
-template<typename T>
-std::string UserValueToken<T>::toString() const {
-	std::string str_val;
+template<> std::string UserValueToken<std::string>::toString() const {
+	return "(string) " + this->value;
+}
 
-	switch(this->type){
-		case db::CT_NUMBER:
-			str_val = std::to_string(this->value);
-			return "(number) " + str_val;
-		case db::CT_STRING:
-			str_val = this->value;
-			return "(string) \"" + str_val + "\"";
-		default:
-			return "unknown type (" + std::to_string(this->type) + ")";
-	}
+template<> std::string UserValueToken<int32_t>::toString() const {
+	return "(number) " + std::to_string(this->value);
 }
 
 template<typename T>
@@ -30,32 +21,23 @@ std::string UserValueToken<T>::getStringId() const {
 	return "";
 }
 
-template<typename T>
-void UserValueToken<T>::serialize(binary::Stream *bs, db::COLUMN_T type) const {
-	switch(type){
-		case db::CT_NUMBER:
-			bs->writeSignedInt32(this->value);
-			break;
-		case db::CT_STRING:
-			bs->writeShortString(this->value);
-			break;
-		default:
-			throw Exception("Unknown column type " + this->type);
-	}
+template<> void UserValueToken<std::string>::serialize(binary::Stream *bs, db::COLUMN_T type) const {
+	bs->writeShortString(this->value);
 }
 
-template<typename T>
-void UserValueToken<T>::deserialize(binary::Stream *bs, db::COLUMN_T type) {
-	switch(type){
-		case db::CT_NUMBER:
-			this->value = bs->readSignedInt32();
-			break;
-		case db::CT_STRING:
-			this->value = bs->readShortString();
-			break;
-		default:
-			throw Exception("Unknown column type " + this->type);
-	}
+template<> void UserValueToken<int32_t>::serialize(binary::Stream *bs, db::COLUMN_T type) const {
+	bs->writeSignedInt32(this->value);
+}
+
+template<> void UserValueToken<std::string>::deserialize(binary::Stream *bs, db::COLUMN_T type) {
+	this->value = bs->readShortString();
+}
+
+template<> void UserValueToken<int32_t>::deserialize(binary::Stream *bs, db::COLUMN_T type) {
+	this->value = bs->readSignedInt32();
 }
 
 UserValueBaseToken::UserValueBaseToken(db::COLUMN_T type) : type(type){}
+
+template class parser::UserValueToken<std::string>;
+template class parser::UserValueToken<int32_t>;

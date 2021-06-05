@@ -5,6 +5,10 @@
 
 #include <utility>
 #include <binary/Stream.h>
+#include "Row.h"
+#include <list/List.h>
+#include <string>
+#include <parser/Exception.h>
 
 using namespace db;
 
@@ -98,6 +102,13 @@ size_t Table::columnIndex(Column *col) const {
 }
 
 template<typename T>
+bool Table::shouldAddRow(parser::UserValueBaseToken* val, const std::function<bool(T)> &check) {
+	T vall = (dynamic_cast<parser::UserValueToken<T> *>(val))->value;
+
+	return check(vall);
+}
+
+template<typename T>
 list::List<db::Row> *Table::find(Column *col, const std::function<bool(T)> &check) {
     std::ifstream dataset(this->path() + "dataset.bin");
     if(!dataset.good()){
@@ -116,20 +127,8 @@ list::List<db::Row> *Table::find(Column *col, const std::function<bool(T)> &chec
 
         row->deserialize(bs);
         auto condVal = row->values->at(colIndex);
-        bool addRow = false;
-        if(col->type == db::CT_STRING) {
-            auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(condVal))->value;
 
-            addRow = check(val);
-        }else if(col->type == db::CT_NUMBER) {
-            auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(condVal))->value;
-
-            addRow = check(val);
-        }else{
-            throw Exception("Unknown type");
-        }
-
-        if(addRow) {
+        if(this->shouldAddRow<T>(condVal, check)) {
             foundRows->push_back(row);
         }
     }
@@ -151,6 +150,10 @@ Table *Table::open(const std::string &name) {
 	const auto path = db::dbPath + name + "/";
 
 	std::ifstream information(path + "information.bin");
+	if(!information.good()){
+		throw Exception("Table \"" + name + "\" does not exists");
+	}
+
 	std::string info((std::istreambuf_iterator<char>(information)),
 	                     std::istreambuf_iterator<char>());
 	information.close();
@@ -301,3 +304,8 @@ Row *Table::getBaseRow() const {
 
 	return row;
 }
+
+template list::List<db::Row>* Table::find<std::string>(Column *col, const std::function<bool(std::string)>& check);
+template list::List<db::Row>* Table::find<int32_t>(Column *col, const std::function<bool(int32_t)>& check);
+template bool Table::shouldAddRow<std::string>(parser::UserValueBaseToken* val, const std::function<bool(std::string)>& check);
+template bool Table::shouldAddRow<int32_t>(parser::UserValueBaseToken* val, const std::function<bool(int32_t)>& check);

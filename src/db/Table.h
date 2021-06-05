@@ -38,7 +38,10 @@ namespace db {
         size_t columnIndex(Column* col) const;
 
         template<typename T>
-        list::List<db::Row>* find( Column *col, const std::function<bool(T)>& check);
+        bool shouldAddRow(parser::UserValueBaseToken* val, const std::function<bool(T)>& check);
+
+        template<typename T>
+        list::List<db::Row>* find(Column *col, const std::function<bool(T)>& check);
 
         static void drop(const std::string& name);
 		static Table* open(const std::string& name);

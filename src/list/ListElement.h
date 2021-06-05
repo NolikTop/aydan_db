@@ -11,7 +11,7 @@ namespace list {
 		ListElement<T>* next;
 
 		explicit ListElement(T* element);
-		ListElement(ListElement<T>* prev, ListElement<T>* next, T element);
+		ListElement(ListElement<T>* prev, ListElement<T>* next, T* element);
 	};
 
 }

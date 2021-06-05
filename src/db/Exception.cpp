@@ -6,10 +6,10 @@
 
 using namespace db;
 
-Exception::Exception(const char *reason) : reason(reason){}
+Exception::Exception(const char *reason) : reason(std::string(reason)){}
 
-Exception::Exception(const std::string& reason) : reason(reason.c_str()) {}
+Exception::Exception(std::string reason) : reason(std::move(reason)) {}
 
 const char *Exception::what() const noexcept {
-	return reason;
+	return reason.c_str();
 }

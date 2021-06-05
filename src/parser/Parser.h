@@ -6,6 +6,7 @@
 #include "Operation.h"
 #include "UserValueToken.h"
 #include <list/List.h>
+#include <db/Column.h>
 #include <parser/type/TypeToken.h>
 
 namespace parser {
@@ -26,15 +27,15 @@ namespace parser {
         static UserValueToken<std::string>* nextStringVal(std::string::iterator &it, std::string::iterator end);
 		static db::Column* readColumn(std::string::iterator &it, std::string::iterator end);
 
-		static void parse(std::string query);
+		static std::string parse(std::string query);
 
-		static void runCreate(std::string &query, std::string::iterator &it);
+		static std::string runCreate(std::string &query, std::string::iterator &it);
 
-		static void runDelete(std::string &query, std::string::iterator &it);
+		static std::string runDelete(std::string &query, std::string::iterator &it);
 		static std::string runDrop(std::string &query, std::string::iterator &it);
 		static std::string runInsert(std::string &query, std::string::iterator &it);
 		static std::string runSelect(std::string &query, std::string::iterator &it);
-		static void runUpdate(std::string &query, std::string::iterator &it);
+		static std::string runUpdate(std::string &query, std::string::iterator &it);
 
 	};
 
