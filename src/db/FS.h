@@ -13,6 +13,8 @@ namespace db {
 
 	public:
 		static bool fileExists(const std::string& name);
+		static bool createDir(const std::string& name);
+		static void deleteDir(const std::string& name);
 	};
 
 }

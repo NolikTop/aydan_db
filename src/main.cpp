@@ -5,33 +5,57 @@
 #include <db/Exception.h>
 #include <list/Exception.h>
 #include <parser/Exception.h>
+#include <db/FS.h>
 #include <exception>
+#include <utils/Colors.h>
 
 using namespace std;
 
-#define RESET   "\033[0m"
-#define BLACK   "\033[30m"      /* Black */
-#define RED     "\033[31m"      /* Red */
-#define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
-#define MAGENTA "\033[35m"      /* Magenta */
-#define CYAN    "\033[36m"      /* Cyan */
-#define WHITE   "\033[37m"      /* White */
-#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
-#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
-#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
-#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
-#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
-#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
-#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
-#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
+#ifdef __APPLE__
+#include <Availability.h> // for deployment target to support pre-catalina targets without std::fs
+#endif
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || (defined(__cplusplus) && __cplusplus >= 201703L)) && defined(__has_include)
+#if __has_include(<filesystem>) && (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
+#define GHC_USE_STD_FS
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+#endif
+#ifndef GHC_USE_STD_FS
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
+#endif
 
 #define AYDANDB_CATCH_EXCEPTIONS 1
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#define WINDOWS 1
+#else
+#define WINDOWS 0
+#endif
+
+bool dir_exists(){
+	return fs::exists(db::dbPath);
+}
+
 int main(){
-	cout << "Welcome to the Aydan_db" << endl;
-	cout << "Type 'exit' to exit the program" << endl;
+	cout << "Welcome to the " << BOLDMAGENTA << "Aydan_db" << RESET << endl;
+#if WINDOWS
+	cout << RED << "Sorry but it does not support Windows platform";
+	return 0;
+#endif
+
+	if(dir_exists()){
+		cout << "Using " << GREEN << "\"" << db::dbPath << "\"" << RESET << " as " << CYAN << "database" << RESET << " directory" << endl;
+		cout << "You can change it in " << GREEN << "src/db/FS.h" << RESET << endl;
+	}else{
+		cout << RED << "Can't find dir \"" << db::dbPath << "\" (it must be used as database directory)" << endl;
+		cout << "You can change it in src/db/FS.h" << endl;
+		return 0;
+	}
+
+	cout << "Type " << GREEN << "'exit'" << RESET << " to exit the program" << endl;
 	string command;
 	do {
 		if(!command.empty()){
@@ -46,15 +70,17 @@ int main(){
 				cout << RED << "db::Exception: " << e.what();
 			}catch(list::Exception &e){
 				cout << RED << "list::Exception: " << e.what();
-			}catch(parser::Exception &e){
+			}catch(parser::Exception &e) {
 				cout << RED << "parser::Exception: " << e.what();
+			}catch(fs::filesystem_error &e) {
+				cout << RED << "fs::filesystem_error: " << e.what();
 			}catch(std::exception &e){
 				cout << RED << "std::Exception: " << e.what();
 			}
 			cout << RESET << endl;
 #endif
 		}
-		cout << "aydan_db> ";
+		cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
 		getline(cin, command);
 	}while(command != "exit");
 }

@@ -101,3 +101,4 @@ template class list::List<db::Row>;
 template class list::List<db::Column>;
 template class list::List<parser::UserValueBaseToken>;
 template class list::List<parser::type::TypeToken>;
+template class list::List<int>;

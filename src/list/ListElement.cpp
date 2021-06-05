@@ -14,3 +14,4 @@ template class list::ListElement<db::Row>;
 template class list::ListElement<db::Column>;
 template class list::ListElement<parser::UserValueBaseToken>;
 template class list::ListElement<parser::type::TypeToken>;
+template class list::ListElement<int>;

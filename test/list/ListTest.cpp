@@ -47,5 +47,5 @@ TEST(List, set){
 	l->set(3, new int(100));
 
 	auto updatedElement = l->at(3);
-	EXPECT_EQ(updatedElement, 100);
+	EXPECT_EQ(*updatedElement, 100);
 }

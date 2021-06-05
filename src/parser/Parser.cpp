@@ -10,6 +10,7 @@
 #include "Operation.h"
 #include "Parser.h"
 #include "Exception.h"
+#include <utils/Colors.h>
 
 using namespace parser;
 using namespace parser::type;
@@ -23,16 +24,23 @@ void Parser::initTypes() {
 	Parser::types->push_back(new StringToken());
 }
 
-void Parser::skipEmpty(std::string::iterator &it, std::string::iterator end, bool skipComma) {
-    for(; (isspace(*it) || (skipComma && *it == ',')) && it != end; it++); // скипаем до момента когда можно будет читать
+void Parser::skipEmpty(std::string::iterator &it, std::string::iterator end, std::string expected, bool skipComma, bool skipCloseParenthesis) {
+    for(; (isspace(*it) || (skipCloseParenthesis && *it == ')') || (skipComma && *it == ',')) && it != end; it++); // скипаем до момента когда можно будет читать
     if(it == end){
-        throw Exception("Empty value until the end");
+    	if(!expected.empty()){
+		    throw Exception("Empty value until the end. Expected " + expected);
+    	}else{
+		    throw Exception("Empty value until the end");
+    	}
     }
 }
 
-std::string Parser::nextWord(std::string::iterator &it, std::string::iterator end, const std::function<bool(char)>& check) {
+std::string Parser::nextWord(std::string::iterator &it, std::string::iterator end, const std::function<bool(char)>& check, std::string expected) {
 	std::string res;
-    skipEmpty(it, end);
+	if(expected.empty()){
+		expected = "word";
+	}
+    skipEmpty(it, end,expected);
 	for(; check(*it) && it != end; it++){
 		res += (char)std::tolower(*it);
 	}
@@ -41,25 +49,34 @@ std::string Parser::nextWord(std::string::iterator &it, std::string::iterator en
 }
 
 // для функций типа isdigit
-std::string Parser::nextWord(std::string::iterator &it, std::string::iterator end, int (*check)(int)) {
+std::string Parser::nextWord(std::string::iterator &it, std::string::iterator end, int (*check)(int), std::string expected) {
     auto castedCheck = [&check](char c){
         return (bool)check(c);
     };
 
-    return nextWord(it, end, castedCheck);
+    return nextWord(it, end, castedCheck, expected);
 }
 
-std::string Parser::nextKeyword(std::string::iterator &it, std::string::iterator end) {
-    return nextWord(it, end, isalpha);
+std::string Parser::nextKeyword(std::string::iterator &it, std::string::iterator end, std::string expected) {
+	if(expected.empty()){
+		expected = "keyword";
+	}
+    return nextWord(it, end,
+        [](char c){
+            return isalpha(c) || c == '_';
+        }, expected);
 }
 
 // name value - тот же keyword, только может быть закрыт `вот так` (вообще лучше давать их вводить только внутри таких кавычек)
 std::string Parser::nextNameValue(std::string::iterator &it,
-                                  std::string::iterator end) {
-	skipEmpty(it, end);
+                                  std::string::iterator end, std::string expected) {
+	if(expected.empty()){
+		expected = "name value";
+	}
+	skipEmpty(it, end, expected);
 	auto word = nextWord(it, end, [](char c){
         return isalpha(c) || c == '*' || c == '`';
-    });
+    }, expected);
     if(word.empty()){
     	char c = *it;
         throw Exception("Empty word in name value near \"" + std::string(1, c) + "\" symbol ");
@@ -77,18 +94,21 @@ std::string Parser::nextNameValue(std::string::iterator &it,
 }
 
 UserValueBaseToken* Parser::nextUserValue(std::string::iterator &it,
-                                  std::string::iterator end) {
-    skipEmpty(it, end);
+                                  std::string::iterator end, std::string expected) {
+	if(expected.empty()){
+		expected = "user value";
+	}
+    skipEmpty(it, end, expected);
 
     // проверяем строка ли там вообще
     if(*it == '"'){
-        return nextStringVal(it, end);
+        return nextStringVal(it, end, expected);
     }
 
     // bool или float или number/big unsigned number
     auto word = nextWord(it, end, [](char c){
         return isalpha(c) || isdigit(c) || c == '.';
-    });
+    }, expected);
     if(word.empty()){
         throw Exception("Empty word in user value near \"" + std::to_string(*it) + "\" symbol");
     }
@@ -126,7 +146,7 @@ UserValueBaseToken* Parser::nextUserValue(std::string::iterator &it,
 
 }
 
-UserValueToken<std::string>* Parser::nextStringVal(std::string::iterator &it, std::string::iterator end) {
+UserValueToken<std::string>* Parser::nextStringVal(std::string::iterator &it, std::string::iterator end, std::string expected) {
     if(*it != '"'){
         throw Exception("Not valid string");
     }
@@ -166,9 +186,9 @@ UserValueToken<std::string>* Parser::nextStringVal(std::string::iterator &it, st
 db::Column *Parser::readColumn(std::string::iterator &it,
                                std::string::iterator end) {
 	if(*it == ')') return nullptr;
-	auto name = nextNameValue(it, end);
+	auto name = nextNameValue(it, end, "column name");
 
-	auto stringIdType = nextKeyword(it, end);
+	auto stringIdType = nextKeyword(it, end, "column type");
 	db::COLUMN_T type = db::CT_UNKNOWN;
 
 	for(auto i = Parser::types->first; i != nullptr; i = i->next){
@@ -183,15 +203,15 @@ db::Column *Parser::readColumn(std::string::iterator &it,
 		throw Exception("Unknown type \"" + stringIdType + "\"");
 	}
 
-	skipEmpty(it, end, false);
+	skipEmpty(it, end, "end of column (\")\" or \",\") or \"primary\" keyword", false, false);
 
 	if(*it == ',' || *it == ')'){
 		return new db::Column(name, type);
 	}
 
-	auto nextWord = nextKeyword(it, end);
+	auto nextWord = nextKeyword(it, end, "\"primary\" keyword");
 	if(nextWord == "primary"){
-		nextWord = nextKeyword(it, end);
+		nextWord = nextKeyword(it, end, "\"key\" keyword");
 
 		if(nextWord != "key"){
 			throw Exception(R"(After "primary" keyword should be "key")");
@@ -208,16 +228,18 @@ db::Column *Parser::readColumn(std::string::iterator &it,
 	}
 
 	// тогда наверно auto_increment
-	nextWord = nextKeyword(it, end);
+	nextWord = nextKeyword(it, end, "\"auto_increment\" keyword");
 	if(nextWord != "auto_increment"){
 		throw Exception("Unknown keyword \"" + nextWord + "\"");
 	}
+
+	skipEmpty(it, end, "useless space before end", false);
 
 	if(*it == ',' || *it == ')') {
 		return new db::Column(name, type, true, true);
 	}
 
-	throw Exception("Unknown data after column \"" + name + "\" data");
+	throw Exception("Unknown data after column \"" + name + "\" data. Data code=" + std::to_string(*it) + " Data=\"" + *it + "\"");
 }
 
 std::string Parser::parse(std::string query) {
@@ -227,7 +249,14 @@ std::string Parser::parse(std::string query) {
 
 	auto it = query.begin();
 
-	auto opRaw = nextKeyword(it, query.end());
+	auto opRaw = nextKeyword(it, query.end(), "operation name");
+	if(it == query.end()) {
+		throw Exception("Unexpected end of operation name \"" + opRaw + "\"");
+	}
+
+	if(*it != ' '){
+		throw Exception("Unknown operation \"" + opRaw + *it + "\"");
+	}
 	if(opRaw == "select"){
 		return Parser::runSelect(query, it);
 	}else if(opRaw == "insert"){
@@ -238,8 +267,10 @@ std::string Parser::parse(std::string query) {
 		return Parser::runDelete(query, it);
 	}else if(opRaw == "create"){
 		return Parser::runCreate(query, it);
-	}else if(opRaw == "drop"){
+	}else if(opRaw == "drop") {
 		return Parser::runDrop(query, it);
+	}else if(opRaw == "describe"){
+		return Parser::runDescribe(query, it);
 	}else{
 		throw Exception("Unknown operation \"" + opRaw + "\"");
 	}
@@ -248,14 +279,14 @@ std::string Parser::parse(std::string query) {
 std::string Parser::runCreate(std::string &query,
                        std::string::iterator &it) {
     auto end = query.end();
-	auto str = nextKeyword(it, end);
+	auto str = nextKeyword(it, end, "\"table\" keyword");
 
 	if(str != "table"){
 		throw Exception(R"(After "create" keyword you should use "table")");
 		// raw string literal юзается потому что иначе тут будет много \"
 	}
 
-    auto tableName = nextNameValue(it, end);
+    auto tableName = nextNameValue(it, end, "table name");
 
 	if(db::Table::exists(tableName)){
 		throw Exception("Table \"" + tableName + "\" already exists");
@@ -263,7 +294,7 @@ std::string Parser::runCreate(std::string &query,
 
 	// читаем структуру таблицы
 
-	skipEmpty(it, end);
+	skipEmpty(it, end, "skip until \"(\" symbol (after that should be table structure)");
 	if(*it != '('){
         throw Exception("No \"(\" symbol before table structure");
 	}
@@ -285,7 +316,7 @@ std::string Parser::runCreate(std::string &query,
 
 std::string Parser::runDelete(std::string &query,
                        std::string::iterator &it) {
-	auto str = nextKeyword(it, query.end());
+	auto str = nextKeyword(it, query.end(), "\"from\" keyword");
 	if(str != "from"){
 		throw Exception(R"(After "delete" keyword you should use "from")");
 	}
@@ -298,14 +329,14 @@ std::string Parser::runDelete(std::string &query,
 std::string Parser::runDrop(std::string &query,
                      std::string::iterator &it) {
 	auto end = query.end();
-	auto str = nextKeyword(it, end);
+	auto str = nextKeyword(it, end, "\"table\" keyword");
 
 	if(str != "table"){
 		throw Exception(R"(After "drop" keyword you should use "table")");
 		// raw string literal юзается потому что иначе тут будет много \"
 	}
 
-	auto tableName = nextNameValue(it, end);
+	auto tableName = nextNameValue(it, end, "table name");
 
 	if(!db::Table::exists(tableName)){
 		throw Exception("Table \"" + tableName + "\" doesn't exists");
@@ -319,23 +350,23 @@ std::string Parser::runDrop(std::string &query,
 std::string Parser::runInsert(std::string &query,
                        std::string::iterator &it) {
 	auto end = query.end();
-	auto str = nextKeyword(it, end);
+	auto str = nextKeyword(it, end, "\"into\" keyword");
 	if(str != "into"){
 		throw Exception(R"(After "insert" keyword you should use "into")");
 		// raw string literal юзается потому что иначе тут будет много \"
 	}
 
-	auto tableName = nextNameValue(it, end);
+	auto tableName = nextNameValue(it, end, "table name");
 
 	auto table = db::Table::open(tableName);
 
-	str = nextKeyword(it, end);
+	str = nextKeyword(it, end, "\"values\" keyword");
 
 	if(str == "values"){
 		throw Exception(R"(After table name you should use "values" (you cant specify column names))");
 	}
 
-	skipEmpty(it, end);
+	skipEmpty(it, end, "skip until \"(\" symbol (after that should be values)");
 	if(*it != '('){
 		throw Exception("No \"(\" symbol before values");
 	}
@@ -356,7 +387,7 @@ std::string Parser::runInsert(std::string &query,
 			}
 			val = new UserValueToken<int32_t>(db::CT_NUMBER, table->autoIncrementId++);
 		}else{
-			val = nextUserValue(it, end);
+			val = nextUserValue(it, end, "value for \"" + col->toString() + "\" column");
 		}
 
 		row->values->push_back(val);
@@ -396,27 +427,28 @@ std::string Parser::runSelect(std::string &query,
 	auto end = query.end();
 	std::string str;
 
-	str = nextNameValue(it, end);
+	str = nextNameValue(it, end, "columns names (but it does not supported, so use \"*\" keyword)");
 	if(str != "*"){
 		throw Exception("You can select only all columns using '*'");
 	}
 
-	if(it == end){
-		throw Exception("Unexpected end");
+	str = nextKeyword(it, end, "\"from\" keyword");
+	if(str != "from"){
+		throw Exception(R"(After "select *" you should use "from" keyword)");
 	}
 
-	auto tableName = nextNameValue(it, end);
+	auto tableName = nextNameValue(it, end, "table name");
 	auto table = db::Table::open(tableName);
 
-	str = nextKeyword(it, end);
+	str = nextKeyword(it, end, "\"where\" keyword");
 	if(str != "where"){
 		throw Exception("After table name should be keyword \"where\"");
 	}
 
-	auto conditionColName = nextNameValue(it, end);
+	auto conditionColName = nextNameValue(it, end, "condition column");
 	auto conditionCol = table->getColumn(conditionColName);
 
-	skipEmpty(it, end);
+	skipEmpty(it, end, "empty space before operation");
 	auto check = [](char c){
 		return c == '>' || c == '<' || c == '=' || c == '!';
 	};
@@ -430,9 +462,9 @@ std::string Parser::runSelect(std::string &query,
 		throw Exception("Unexpected empty or unknown operation");
 	}
 
-	skipEmpty(it, end);
+	skipEmpty(it, end, "empty space before condition value");
 
-	auto conditionVal = nextUserValue(it, end);
+	auto conditionVal = nextUserValue(it, end, "condition value");
 	if(conditionVal->type != conditionCol->type){
 		throw Exception("Wrong type in condition value");
 	}
@@ -442,7 +474,7 @@ std::string Parser::runSelect(std::string &query,
     if (str == "==") {
         if (conditionCol->type == db::CT_STRING) {
             auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
-            rows = table->find<std::string>(
+	        rows = table->find<std::string>(
                 conditionCol,
                 [&val](std::string value) {
                     return value == val;
@@ -570,4 +602,32 @@ std::string Parser::runUpdate(std::string &query,
     throw Exception("Update operation is not supported");
 
     return "Successfully updated rows";
+}
+
+std::string Parser::runDescribe(std::string &query,
+                                std::basic_string<char, std::char_traits<char>, std::allocator<char>>::iterator &it) {
+	auto end = query.end();
+
+	auto tableName = nextNameValue(it, end, "table name");
+
+	auto table = db::Table::open(tableName);
+
+	std::stringstream res;
+
+	res << "Table name: " << GREEN << table->name << RESET << " | Rows: " << YELLOW << table->rows << RESET << " | Auto increment id: " << MAGENTA << table->autoIncrementId << RESET;
+	res << "\nColumns:";
+	for(auto cElement = table->columns->first; cElement != nullptr; cElement = cElement->next){
+		auto c = cElement->element;
+		res << "\n";
+		res << c->toString();
+		if(c->primaryKey){
+			res << BOLDYELLOW << " [PRIMARY KEY]";
+			if(c->autoIncrement){
+				res << BOLDGREEN << " {AUTO_INCREMENT}";
+			}
+		}
+		res << RESET;
+	}
+
+	return res.str();
 }

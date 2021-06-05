@@ -9,7 +9,7 @@ typedef unsigned char byte;
 
 namespace binary {
 
-	const int CAP_X2 = 1024 * 1024 * 10; // 10mb
+	const int CAP_X2 = 1024 * 1024 * 10 * sizeof(byte); // 10mb
 
 	struct Stream {
 		size_t size;
@@ -43,9 +43,6 @@ namespace binary {
 		void writeNumber(size_t valueSize, int64_t value);
 		[[nodiscard]] int64_t readNumber(size_t valueSize);
 
-		void writeUnsignedVarInt(u_int64_t number);
-		u_int64_t readUnsignedVarInt();
-
 
 		void checkForWrite(size_t valueSize);
 
@@ -72,6 +69,8 @@ namespace binary {
 
 		void writeUnsignedLong(u_int64_t value);
 		[[nodiscard]] u_int64_t readUnsignedLong();
+
+		void dump();
 
 	};
 

@@ -8,7 +8,6 @@
 #include "Row.h"
 #include <list/List.h>
 #include <string>
-#include <parser/Exception.h>
 
 using namespace db;
 
@@ -71,6 +70,9 @@ Column* Table::getColumn(const std::string &colName) const {
 }
 
 void Table::createFiles() {
+	if(!FS::createDir(this->name)){
+		throw Exception("Couldn't create dir \"" + this->path() + "\"");
+	}
 	this->saveInformation();
 	this->createAdditionFiles();
 }
@@ -139,11 +141,7 @@ list::List<db::Row> *Table::find(Column *col, const std::function<bool(T)> &chec
 }
 
 void Table::drop(const std::string &name) {
-	const auto path = db::dbPath + name + "/";
-
-	auto cmd = "rm -r \"" + path + "\"";
-
-	system(cmd.c_str());
+	FS::deleteDir(name);
 }
 
 Table *Table::open(const std::string &name) {
@@ -160,6 +158,13 @@ Table *Table::open(const std::string &name) {
 
 	auto table = new Table(name);
 	auto bs = new binary::Stream(info.length(), (byte *) info.c_str());
+
+	auto verifyCode = bs->readByteString();
+	if(verifyCode != "aydan_db"){
+		throw Exception("Wrong verify code");
+	}
+
+	auto zeroByte = bs->readUnsignedByte(); // 0x00
 
 	auto colsCount = bs->readUnsignedByte();
 	for(auto i = 0; i < colsCount; ++i){
@@ -218,6 +223,9 @@ void Table::saveInformation() const {
 	const std::string path = this->path() + "information.bin";
 
 	auto bs = new binary::Stream();
+	bs->writeByteString("aydan_db");
+	bs->writeUnsignedByte(0x00);
+
 	bs->writeUnsignedByte((uint8_t)this->columns->len());
 
 	for(auto i = this->columns->first; i != nullptr; i = i->next){
@@ -245,20 +253,20 @@ void Table::saveInformation() const {
 			bs->writeUnsignedByte(ST_AUTO_INCREMENT);
 			bs->writeByteString(this->primaryKey->name);
 
-			bs->writeUnsignedLong(this->autoIncrementId); // autoIncrementId
+			bs->writeSignedInt32(this->autoIncrementId); // autoIncrementId
 		}
 	}
 
-	bs->writeUnsignedLong(this->rows); // кол во строк
+	bs->writeSignedInt32(this->rows); // кол во строк
 
 	std::ofstream info(path);
 	if(!info.good()){
-		info.close();
 		throw Exception("Cant open file \"" + path + "\"");
 	}
 
-	info.clear();
-	info << bs->buffer;
+	bs->dump();
+
+	info.write(reinterpret_cast<const char *>(bs->buffer), (std::streamsize)bs->size);
 
 	info.close();
 

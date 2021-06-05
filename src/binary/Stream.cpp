@@ -21,6 +21,7 @@ bool Stream::eof() const {
 }
 
 void Stream::clean(size_t capacity) {
+	delete[] buffer;
 	cap = capacity;
 	offset = 0;
 	size = 0;
@@ -120,57 +121,35 @@ int64_t Stream::readNumber(size_t valueSize){
 	return num;
 }
 
-//todo write tests
-void Stream::writeUnsignedVarInt(u_int64_t number) {
-	do {
-		byte temp = (byte) (number & 0b01111111);
-
-		number >>= 7;
-
-		if(number != 0){
-			temp |= 0b10000000;
-		}
-
-		writeUnsignedByte(temp);
-	}while(number != 0);
-}
-
-u_int64_t Stream::readUnsignedVarInt() {
-	const int maxSize = 5;
-
-	u_int64_t value = 0;
-	int size_ = 0;
-	int b;
-	while(((b = readUnsignedByte()) & 0x80) == 0x80){
-		value |= (u_int) (b & 0x7F) << (size_++ * 7);
-		if(size_ >= maxSize){
-			throw binary::Exception("VarInt too big");
-		}
-	}
-
-	return value | ((u_int64_t) (b & 0x7F) << (size_ * 7));
-}
-
 void Stream::checkForWrite(size_t valueSize) {
-	const size_t needSize = offset + valueSize;
-	size_t newCap;
-	if(needSize > cap){
-		if(needSize >= CAP_X2){
+	offset = size;
+	size += valueSize;
+	size_t newCap = 0;
+	std::cout << "check ";
+	std::cout << "size=" << size << " cap=" << cap << std::endl;
+	if(size > cap){
+		std::cout << "realloc";
+		std::cout << std::endl;
+		this->dump();
+
+		if(size >= CAP_X2){
 			// todo может вообще стоит отказывать в таких размерах
-			newCap = (size_t) ((double)needSize * 1.25);
+			newCap = (size_t) ((double)size * 1.25);
 		}else{
-			newCap = needSize * 2;
+
+			newCap = size * 2;
 		}
 
-		byte* newBuffer = new byte[newCap];
-		memcpy(newBuffer, buffer, cap);
+		auto newBuffer = new byte[newCap];
+		for(auto i = 0; i < cap; ++i){
+			newBuffer[i] = buffer[i];
+		}
 		delete[] buffer;
 		buffer = newBuffer;
-
 		cap = newCap;
-	}
+		this->dump();
 
-	size += valueSize;
+	}
 }
 
 void Stream::writeSignedByte(int8_t value) {
@@ -235,4 +214,8 @@ void Stream::writeUnsignedLong(u_int64_t value) {
 
 u_int64_t Stream::readUnsignedLong(){
 	return readNumber(sizeof(u_int64_t));
+}
+
+void Stream::dump() {
+	std::cout << "HEX dump of binary::Stream. Size=" << this->size << ". Current offset=" << this->offset;
 }
