@@ -429,19 +429,35 @@ std::string Parser::runInsert(std::string &query) {
 	std::stringstream res;
 
     res << "Successfully inserted row in table \"";
-    res << tableName;
-    res << "\"";
+    res << GREEN << tableName << RESET;
+    res << "\"" << std::endl;
 
-	res << "Cols: | ";
+	//region расчет maxWidthCol
+	auto colIndex = 0;
+	for(auto cols = row->columns->first; cols != nullptr; cols = cols->next, colIndex++){
+		auto col = cols->element;
+
+		col->maxWidthCol = std::max(
+				(int)row->values->at(colIndex)->toColoredString().length(),
+				(int)col->toString().length()
+				);
+	}
+	//endregion
+
+	std::ios init(NULL);
+	init.copyfmt(res);
+
+	res << "\n| ";
 
 	for(auto cols = row->columns->first; cols != nullptr; cols = cols->next){
 		auto col = cols->element;
 
-		res << col->toString() << " | ";
+		res << std::setw(col->maxWidthCol) << std::left << col->toString();
+		res.copyfmt(init);
+		res << " | ";
 	}
 
 	res << "\n";
-    res << "\nRow: ";
     res << row->toString();
 
 	delete row;
