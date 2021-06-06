@@ -23,10 +23,10 @@ namespace parser {
 
 	    static std::string nextWord(std::string::iterator end, const std::function<bool(char)>& check = nullptr, std::string expected = "");
 		static std::string nextWord(std::string::iterator end, int (*check)(int) = nullptr, std::string expected = "");
-		static std::string nextKeyword(std::string::iterator end, std::string expected );
-		static std::string nextNameValue(std::string::iterator end, std::string expected );
-		static UserValueBaseToken* nextUserValue(std::string::iterator end, std::string expected );
-        static UserValueToken<std::string>* nextStringVal(std::string::iterator end, std::string expected );
+		static std::string nextKeyword(std::string::iterator end, std::string expected);
+		static std::string nextNameValue(std::string::iterator end, std::string expected);
+		static UserValueBaseToken* nextUserValue(std::string::iterator end, std::string expected);
+        static UserValueToken<std::string>* nextStringVal(std::string::iterator end, std::string expected);
 		static db::Column* readColumn(std::string::iterator end);
 
 		static std::string parse(std::string query);

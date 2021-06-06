@@ -20,3 +20,19 @@ std::string db::Column::toString() const {
 
     return name + " " + typeName;
 }
+
+std::string db::Column::toCleanString() const {
+	std::string typeName;
+	switch(type){
+		case CT_STRING:
+			typeName = "(string)";
+			break;
+		case CT_NUMBER:
+			typeName = "(number)";
+			break;
+		default:
+			typeName = "(unknown id=" + std::to_string(type) + ")";
+	}
+
+	return name + " " + typeName;
+}

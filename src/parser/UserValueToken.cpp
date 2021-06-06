@@ -2,6 +2,7 @@
 #include "Exception.h"
 #include <string>
 #include <binary/Stream.h>
+#include <utils/Colors.h>
 
 using namespace parser;
 
@@ -14,6 +15,22 @@ template<> std::string UserValueToken<std::string>::toString() const {
 
 template<> std::string UserValueToken<int32_t>::toString() const {
 	return "(number) " + std::to_string(this->value);
+}
+
+template<> std::string UserValueToken<std::string>::toCleanString() const {
+	return this->value;
+}
+
+template<> std::string UserValueToken<int32_t>::toCleanString() const {
+	return std::to_string(this->value);
+}
+
+template<> std::string UserValueToken<std::string>::toColoredString() const {
+	return std::string(BOLDBLUE) + this->value + RESET;
+}
+
+template<> std::string UserValueToken<int32_t>::toColoredString() const {
+	return std::string(BOLDCYAN) + std::to_string(this->value) + RESET;
 }
 
 template<typename T>

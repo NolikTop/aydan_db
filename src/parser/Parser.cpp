@@ -11,6 +11,7 @@
 #include "Parser.h"
 #include "Exception.h"
 #include <utils/Colors.h>
+#include <iomanip>
 
 using namespace parser;
 using namespace parser::type;
@@ -466,128 +467,138 @@ std::string Parser::runSelect(std::string &query) {
 	auto tableName = nextNameValue(end, "table name");
 	auto table = db::Table::open(tableName);
 
-	str = nextKeyword(end, "\"where\" keyword");
-	if(str != "where"){
-		throw Exception("After table name should be keyword \"where\"");
-	}
-
-	auto conditionColName = nextNameValue(end, "condition column");
-	auto conditionCol = table->getColumn(conditionColName);
-
-	skipEmpty(end, "empty space before operation");
-	auto check = [](char c){
-		return c == '>' || c == '<' || c == '=' || c == '!';
-	};
-
-	if(!check(*it)){
-		throw Exception("Unknown operation");
-	}
-
-	str = nextWord(end, check);
-	if(it == end){
-		throw Exception("Unexpected empty or unknown operation");
-	}
-
-	skipEmpty(end, "empty space before condition value");
-
-	auto conditionVal = nextUserValue(end, "condition value");
-	if(conditionVal->type != conditionCol->type){
-		throw Exception("Wrong type in condition value");
-	}
-
 	list::List<db::Row>* rows;
 
-    if (str == "==") {
-        if (conditionCol->type == db::CT_STRING) {
-            auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
-	        rows = table->find<std::string>(
-                conditionCol,
-                [&val](std::string value) {
-                    return value == val;
-                }
-            );
-        } else if (conditionCol->type == db::CT_NUMBER) {
-            auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
-            rows = table->find<int32_t>(
-                    conditionCol,
-                    [&val](int32_t value) {
-                        return value == val;
-                    }
-            );
-        } else {
-            throw Exception("Unknown type");
-        }
-    }else if (str == "!=") {
-        if(conditionCol->type == db::CT_STRING) {
-            auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
-            rows = table->find<std::string>(
-                conditionCol,
-                [&val](std::string value) {
-                    return value != val;
-                }
-            );
-        }else if(conditionCol->type == db::CT_NUMBER) {
-            auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
-            rows = table->find<int32_t>(
-                conditionCol,
-                [&val](int32_t value){
-                    return value != val;
-                }
-            );
-        }else{
-            throw Exception("Unknown type");
-        }
-    } else if (str == ">") {
-        if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only by numbers");
-        }
+	if(it == end || std::next(it) == end){
+		rows = table->find<int32_t>( // primary key всегда int32_t
+			table->primaryKey,
+			[](int32_t value) {
+				return true;
+			}
+		);
+	}else{
+		str = nextKeyword(end, "\"where\" keyword");
+		if (str != "where") {
+			throw Exception("After table name should be keyword \"where\"");
+		}
 
-        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
-        rows = table->find<int32_t>(
-                conditionCol,
-                [&val](int32_t value){
-                    return value > val;
-                }
-        );
-    } else if (str == "<") {
-        if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only by numbers");
-        }
+		auto conditionColName = nextNameValue(end, "condition column");
+		auto conditionCol = table->getColumn(conditionColName);
 
-        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
-        rows = table->find<int32_t>(
-                conditionCol,
-                [&val](int32_t value){
-                    return value < val;
-                }
-        );
-    } else if (str == ">=") {
-        if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only by numbers");
-        }
+		skipEmpty(end, "empty space before operation");
+		auto check = [](char c) {
+			return c == '>' || c == '<' || c == '=' || c == '!';
+		};
 
-        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
-        rows = table->find<int32_t>(
-                conditionCol,
-                [&val](int32_t value){
-                    return value >= val;
-                }
-        );
-    } else if (str == "<=") {
-        if(conditionCol->type != db::CT_NUMBER) {
-            throw Exception("This operation supported only by numbers");
-        }
+		if (!check(*it)) {
+			throw Exception("Unknown operation");
+		}
 
-        auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
-        rows = table->find<int32_t>(
-                conditionCol,
-                [&val](int32_t value){
-                    return value <= val;
-                }
-        );
-    } else {
-        throw Exception("Unknown operation \"" + str + "\"");
-    }
+		str = nextWord(end, check);
+		if (it == end) {
+			throw Exception("Unexpected empty or unknown operation");
+		}
+
+		skipEmpty(end, "empty space before condition value");
+
+		auto conditionVal = nextUserValue(end, "condition value");
+		if (conditionVal->type != conditionCol->type) {
+			throw Exception("Wrong type in condition value");
+		}
+
+		if (str == "==") {
+			if (conditionCol->type == db::CT_STRING) {
+				auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
+				rows = table->find<std::string>(
+						conditionCol,
+						[&val](std::string value) {
+							return value == val;
+						}
+				);
+			} else if (conditionCol->type == db::CT_NUMBER) {
+				auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+				rows = table->find<int32_t>(
+						conditionCol,
+						[&val](int32_t value) {
+							return value == val;
+						}
+				);
+			} else {
+				throw Exception("Unknown type");
+			}
+		} else if (str == "!=") {
+			if (conditionCol->type == db::CT_STRING) {
+				auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
+				rows = table->find<std::string>(
+						conditionCol,
+						[&val](std::string value) {
+							return value != val;
+						}
+				);
+			} else if (conditionCol->type == db::CT_NUMBER) {
+				auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+				rows = table->find<int32_t>(
+						conditionCol,
+						[&val](int32_t value) {
+							return value != val;
+						}
+				);
+			} else {
+				throw Exception("Unknown type");
+			}
+		} else if (str == ">") {
+			if (conditionCol->type != db::CT_NUMBER) {
+				throw Exception("This operation supported only by numbers");
+			}
+
+			auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+			rows = table->find<int32_t>(
+					conditionCol,
+					[&val](int32_t value) {
+						return value > val;
+					}
+			);
+		} else if (str == "<") {
+			if (conditionCol->type != db::CT_NUMBER) {
+				throw Exception("This operation supported only by numbers");
+			}
+
+			auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+			rows = table->find<int32_t>(
+					conditionCol,
+					[&val](int32_t value) {
+						return value < val;
+					}
+			);
+		} else if (str == ">=") {
+			if (conditionCol->type != db::CT_NUMBER) {
+				throw Exception("This operation supported only by numbers");
+			}
+
+			auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+			rows = table->find<int32_t>(
+					conditionCol,
+					[&val](int32_t value) {
+						return value >= val;
+					}
+			);
+		} else if (str == "<=") {
+			if (conditionCol->type != db::CT_NUMBER) {
+				throw Exception("This operation supported only by numbers");
+			}
+
+			auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(conditionVal))->value;
+			rows = table->find<int32_t>(
+					conditionCol,
+					[&val](int32_t value) {
+						return value <= val;
+					}
+			);
+		} else {
+			throw Exception("Unknown operation \"" + str + "\"");
+		}
+
+	}
 
     std::stringstream res;
 
@@ -596,12 +607,31 @@ std::string Parser::runSelect(std::string &query) {
         return "Empty set";
     }
 
-    res << "|";
+    //region расчет maxWidthCol
+	auto colIndex = 0;
+	for(auto cols = rows->first->element->columns->first; cols != nullptr; cols = cols->next, colIndex++){
+		auto col = cols->element;
+
+		col->maxWidthCol = col->toString().length();
+
+		for(auto rElement = rows->first; rElement != nullptr; rElement = rElement->next) {
+			auto row = rElement->element;
+			col->maxWidthCol = std::max((int)row->values->at(colIndex)->toColoredString().length(), col->maxWidthCol);
+		}
+	}
+	//endregion
+
+    res << "| ";
+
+	std::ios init(NULL);
+	init.copyfmt(res);
 
     for(auto cols = rows->first->element->columns->first; cols != nullptr; cols = cols->next){
         auto col = cols->element;
 
-        res << col->toString() << " | ";
+        res << std::setw(col->maxWidthCol) << col->toString();
+	    res.copyfmt(init);
+	    res << " | ";
     }
 
     res << "\n";

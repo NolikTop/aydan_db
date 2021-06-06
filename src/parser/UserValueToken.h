@@ -14,6 +14,8 @@ namespace parser {
 		std::string::iterator positionInQuery;
 
 		[[nodiscard]] virtual std::string toString() const = 0;
+		[[nodiscard]] virtual std::string toCleanString() const = 0;
+		[[nodiscard]] virtual std::string toColoredString() const = 0;
 
 		UserValueBaseToken(db::COLUMN_T type, std::string::iterator positionInQuery);
 	};
@@ -28,6 +30,8 @@ namespace parser {
 		UserValueToken(db::COLUMN_T type, T value, std::string::iterator positionInQuery);
 
 		[[nodiscard]] std::string toString() const override;
+		[[nodiscard]] std::string toCleanString() const override;
+		[[nodiscard]] std::string toColoredString() const override;
 		void serialize(binary::Stream* bs, db::COLUMN_T type) const;
 		void deserialize(binary::Stream* bs, db::COLUMN_T type);
 	};

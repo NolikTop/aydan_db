@@ -1,11 +1,15 @@
 #include <sstream>
 #include <parser/Parser.h>
+#include <iomanip>
 #include "Row.h"
 #include "Exception.h"
 
 std::string db::Row::toString() const {
 	std::stringstream res;
 	res << "| ";
+
+	std::ios init(NULL);
+	init.copyfmt(res);
 
 	auto vElement = values->first;
 	for(
@@ -17,7 +21,9 @@ std::string db::Row::toString() const {
 		auto col = cElement->element;
 		auto val = vElement->element;
 
-		res << val->toString() << " | ";
+		res << std::setw(col->maxWidthCol) << val->toColoredString();
+		res.copyfmt(init);
+		res << " | ";
 	}
 
 	return res.str();
