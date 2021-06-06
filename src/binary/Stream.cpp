@@ -125,11 +125,11 @@ void Stream::checkForWrite(size_t valueSize) {
 	offset = size;
 	size += valueSize;
 	size_t newCap = 0;
-	std::cout << "check ";
-	std::cout << "size=" << size << " cap=" << cap << std::endl;
+	//std::cout << "check ";
+	//std::cout << "size=" << size << " cap=" << cap << std::endl;
 	if(size > cap){
-		std::cout << "realloc";
-		std::cout << std::endl;
+		//std::cout << "realloc";
+		//std::cout << std::endl;
 		this->dump();
 
 		if(size >= CAP_X2){
@@ -217,5 +217,5 @@ u_int64_t Stream::readUnsignedLong(){
 }
 
 void Stream::dump() {
-	std::cout << "HEX dump of binary::Stream. Size=" << this->size << ". Current offset=" << this->offset;
+	//std::cout << "HEX dump of binary::Stream. Size=" << this->size << ". Current offset=" << this->offset;
 }

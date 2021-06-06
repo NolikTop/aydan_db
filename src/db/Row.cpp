@@ -1,9 +1,11 @@
 #include <sstream>
+#include <parser/Parser.h>
 #include "Row.h"
 #include "Exception.h"
 
 std::string db::Row::toString() const {
 	std::stringstream res;
+	res << "| ";
 
 	auto vElement = values->first;
 	for(
@@ -15,7 +17,7 @@ std::string db::Row::toString() const {
 		auto col = cElement->element;
 		auto val = vElement->element;
 
-		res << val->toString() << " ";
+		res << val->toString() << " | ";
 	}
 
 	return res.str();
@@ -27,10 +29,10 @@ void db::Row::deserialize(binary::Stream *bs) const {
 		parser::UserValueBaseToken* val;
 		switch (col->type) {
 			case db::CT_STRING:
-				val = new parser::UserValueToken<std::string>(col->type, bs->readShortString());
+				val = new parser::UserValueToken<std::string>(col->type, bs->readShortString(), std::string::iterator());
 				break;
 			case db::CT_NUMBER:
-				val = new parser::UserValueToken<int32_t>(col->type, bs->readSignedInt32());
+				val = new parser::UserValueToken<int32_t>(col->type, bs->readSignedInt32(), std::string::iterator());
 				break;
 			default:
 				throw Exception("Unknown type " + std::to_string(col->type));
@@ -70,6 +72,23 @@ void db::Row::serialize(binary::Stream* bs) const {
 
 db::Row::Row() : columns(new list::List<db::Column>()), values(new list::List<parser::UserValueBaseToken>()){
 
+}
+
+void db::Row::checkForFilled() const {
+	auto vElement = values->first;
+	for(auto cElement = columns->first; cElement != nullptr; cElement = cElement->next, vElement = vElement->next){
+		if(vElement == nullptr){
+			throw Exception("There is no value for \"" + cElement->element->toString() + "\" column");
+		}
+		if(cElement->element->type != vElement->element->type){
+			parser::Parser::iterator = vElement->element->positionInQuery;
+			throw Exception("Bad type in value for \"" + cElement->element->toString() + "\" column");
+		}
+	}
+	if(vElement != nullptr){
+		parser::Parser::iterator = vElement->element->positionInQuery;
+		throw Exception("Excess value \"" + vElement->element->toString() + "\"");
+	}
 }
 
 void db::Row::cleanValues() const {

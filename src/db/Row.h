@@ -20,6 +20,8 @@ namespace db {
 		void deserialize(binary::Stream* bs) const;
 		void serialize(binary::Stream* bs) const;
 
+		void checkForFilled() const;
+
 		void cleanValues() const;
 	};
 

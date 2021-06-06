@@ -6,7 +6,7 @@
 using namespace parser;
 
 template<typename T>
-UserValueToken<T>::UserValueToken(db::COLUMN_T type, T value) : UserValueBaseToken(type), value(value) {}
+UserValueToken<T>::UserValueToken(db::COLUMN_T type, T value, std::string::iterator positionInQuery) : UserValueBaseToken(type, positionInQuery), value(value) {}
 
 template<> std::string UserValueToken<std::string>::toString() const {
 	return "(string) " + this->value;
@@ -37,7 +37,7 @@ template<> void UserValueToken<int32_t>::deserialize(binary::Stream *bs, db::COL
 	this->value = bs->readSignedInt32();
 }
 
-UserValueBaseToken::UserValueBaseToken(db::COLUMN_T type) : type(type){}
+UserValueBaseToken::UserValueBaseToken(db::COLUMN_T type, std::string::iterator positionInQuery) : type(type), positionInQuery(positionInQuery){}
 
 template class parser::UserValueToken<std::string>;
 template class parser::UserValueToken<int32_t>;

@@ -78,6 +78,8 @@ void Table::createFiles() {
 }
 
 void Table::appendRow(Row* row) {
+	row->checkForFilled();
+
 	auto bs = new binary::Stream();
 
 	row->serialize(bs);
@@ -277,7 +279,7 @@ void Table::createAdditionFiles() const {
 	const std::string path = this->path();
 
 	if(this->primaryKey != nullptr){
-		std::ofstream primaryKeys(path + "primary_keys.bin");
+		/*std::ofstream primaryKeys(path + "primary_keys.bin");
 
 		if(!primaryKeys.good()){
 			primaryKeys.close();
@@ -287,7 +289,9 @@ void Table::createAdditionFiles() const {
 		// файл пустой должен быть по началу
 		primaryKeys << "";
 
-		primaryKeys.close();
+		primaryKeys.close();*/
+
+		// todo если успею, то реализовать быстрый поиск по primary key
 	}
 
 	std::ofstream dataset(path + "dataset.bin");

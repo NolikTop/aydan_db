@@ -24,6 +24,8 @@ namespace fs = std::filesystem;
 #endif
 #ifndef GHC_USE_STD_FS
 #include <ghc/filesystem.hpp>
+#include <sstream>
+
 namespace fs = ghc::filesystem;
 #endif
 
@@ -57,7 +59,9 @@ int main(){
 
 	cout << "Type " << GREEN << "'exit'" << RESET << " to exit the program" << endl;
 	string command;
+	cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
 	do {
+		stringstream error;
 		if(!command.empty()){
 #if AYDANDB_CATCH_EXCEPTIONS
 			try {
@@ -65,22 +69,28 @@ int main(){
 				cout << parser::Parser::parse(command);
 #if AYDANDB_CATCH_EXCEPTIONS
 			}catch(binary::Exception &e){
-				cout << RED << "binary::Exception: " << e.what();
+				error << RED << "binary::Exception: " << RESET << e.what();
 			}catch(db::Exception &e){
-				cout << RED << "db::Exception: " << e.what();
+				error << RED << "db::Exception: " << RESET << e.what();
 			}catch(list::Exception &e){
-				cout << RED << "list::Exception: " << e.what();
+				error << RED << "list::Exception: " << RESET << e.what();
 			}catch(parser::Exception &e) {
-				cout << RED << "parser::Exception: " << e.what();
+				error << RED << "parser::Exception: " << RESET << e.what();
 			}catch(fs::filesystem_error &e) {
-				cout << RED << "fs::filesystem_error: " << e.what();
+				error << RED << "fs::filesystem_error: " << RESET << e.what();
 			}catch(std::exception &e){
-				cout << RED << "std::Exception: " << e.what();
+				error << RED << "std::Exception: " << RESET << e.what();
 			}
-			cout << RESET << endl;
 #endif
+			if(!error.str().empty()){ // eof() адекватно не работает
+				cout << command << endl;
+				auto errIndex = distance(parser::Parser::begin, parser::Parser::iterator);
+				cout << string(errIndex, ' ') << BOLDCYAN << '^' << RESET << endl;
+				cout << error.str();
+			}
+			cout << endl;
+			cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
 		}
-		cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
 		getline(cin, command);
 	}while(command != "exit");
 }

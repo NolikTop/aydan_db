@@ -11,10 +11,11 @@ namespace parser {
 	class UserValueBaseToken : public Token {
 	public:
 		db::COLUMN_T type;
+		std::string::iterator positionInQuery;
 
 		[[nodiscard]] virtual std::string toString() const = 0;
 
-		explicit UserValueBaseToken(db::COLUMN_T type);
+		UserValueBaseToken(db::COLUMN_T type, std::string::iterator positionInQuery);
 	};
 
 	template<typename T>
@@ -24,7 +25,7 @@ namespace parser {
 
 		[[nodiscard]] std::string getStringId() const override;
 
-		UserValueToken(db::COLUMN_T type, T value);
+		UserValueToken(db::COLUMN_T type, T value, std::string::iterator positionInQuery);
 
 		[[nodiscard]] std::string toString() const override;
 		void serialize(binary::Stream* bs, db::COLUMN_T type) const;
