@@ -485,7 +485,7 @@ std::string Parser::runSelect(std::string &query) {
 		auto conditionColName = nextNameValue(end, "condition column");
 		auto conditionCol = table->getColumn(conditionColName);
 
-		skipEmpty(end, "empty space before operation");
+		skipEmpty(end, "operation");
 		auto check = [](char c) {
 			return c == '>' || c == '<' || c == '=' || c == '!';
 		};
@@ -496,7 +496,7 @@ std::string Parser::runSelect(std::string &query) {
 
 		str = nextWord(end, check);
 		if (it == end) {
-			throw Exception("Unexpected empty or unknown operation");
+			throw Exception("Expected condition value");
 		}
 
 		skipEmpty(end, "empty space before condition value");
@@ -506,7 +506,7 @@ std::string Parser::runSelect(std::string &query) {
 			throw Exception("Wrong type in condition value");
 		}
 
-		if (str == "==") {
+		if (str == "==" || str == "=") {
 			if (conditionCol->type == db::CT_STRING) {
 				auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(conditionVal))->value;
 				rows = table->find<std::string>(
@@ -629,7 +629,7 @@ std::string Parser::runSelect(std::string &query) {
     for(auto cols = rows->first->element->columns->first; cols != nullptr; cols = cols->next){
         auto col = cols->element;
 
-        res << std::setw(col->maxWidthCol) << col->toString();
+        res << std::setw(col->maxWidthCol) << std::left << col->toString();
 	    res.copyfmt(init);
 	    res << " | ";
     }
