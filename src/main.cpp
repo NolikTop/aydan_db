@@ -44,8 +44,11 @@ bool dir_exists(){
 int main(){
 	cout << "Welcome to the " << BOLDMAGENTA << "Aydan_db" << RESET << endl;
 #if WINDOWS
-	cout << RED << "Sorry but it does not support Windows platform";
-	return 0;
+	if(db::dbPath.find('/') != std::string::npos){
+		cout << RED << "Please change database path in src/db/FS.h. Is must not contain \"/\" symbols (because of Windows)";
+		cout << endl << YELLOW << "Current path is \"" << db::dbPath << "\"";
+		return 0;
+	}
 #endif
 
 	if(dir_exists()){

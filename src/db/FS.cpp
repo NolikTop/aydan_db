@@ -29,3 +29,11 @@ bool FS::createDir(const std::string &name) {
 void FS::deleteDir(const std::string &name) {
 	fs::remove_all(dbPath + name);
 }
+
+char FS::slash() {
+#if WINDOWS
+	return "\\";
+#else
+	return '/';
+#endif
+}

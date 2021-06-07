@@ -12,7 +12,7 @@
 using namespace db;
 
 std::string Table::path() const {
-	return db::dbPath + this->name + "/";
+	return db::dbPath + this->name + FS::slash();
 }
 
 Table::Table(std::string name) :
@@ -147,7 +147,7 @@ void Table::drop(const std::string &name) {
 }
 
 Table *Table::open(const std::string &name) {
-	const auto path = db::dbPath + name + "/";
+	const auto path = db::dbPath + name + FS::slash();
 
 	std::ifstream information(path + "information.bin");
 	if(!information.good()){
@@ -218,7 +218,7 @@ Table *Table::open(const std::string &name) {
 }
 
 bool Table::exists(const std::string& name) {
-	return FS::fileExists(name + "/information.bin");
+	return FS::fileExists(name + FS::slash() + "information.bin");
 }
 
 void Table::saveInformation() const {
