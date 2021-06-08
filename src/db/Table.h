@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list/List.h>
+#include <functional>
 #include "ColumnType.h"
 #include "Column.h"
 #include "Row.h"

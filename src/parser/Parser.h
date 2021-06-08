@@ -7,6 +7,7 @@
 #include <list/List.h>
 #include <db/Column.h>
 #include <parser/type/TypeToken.h>
+#include <functional>
 
 namespace parser {
 

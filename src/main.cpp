@@ -8,9 +8,7 @@
 #include <db/FS.h>
 #include <exception>
 #include <utils/Colors.h>
-
-using namespace std;
-
+#include <sstream>
 
 #ifdef __APPLE__
 #include <Availability.h> // for deployment target to support pre-catalina targets without std::fs
@@ -42,34 +40,34 @@ bool dir_exists(){
 }
 
 int main(){
-	cout << "Welcome to the " << BOLDMAGENTA << "Aydan_db" << RESET << endl;
+	std::cout << "Welcome to the " << BOLDMAGENTA << "Aydan_db" << RESET << std::endl;
 #if WINDOWS
 	if(db::dbPath.find('/') != std::string::npos){
-		cout << RED << "Please change database path in src/db/FS.h. Is must not contain \"/\" symbols (because of Windows)";
-		cout << endl << YELLOW << "Current path is \"" << db::dbPath << "\"";
+		std::cout << RED << "Please change database path in src/db/FS.h. Is must not contain \"/\" symbols (because of Windows)";
+		std::cout << std::endl << YELLOW << "Current path is \"" << db::dbPath << "\"";
 		return 0;
 	}
 #endif
 
 	if(dir_exists()){
-		cout << "Using " << GREEN << "\"" << db::dbPath << "\"" << RESET << " as " << CYAN << "database" << RESET << " directory" << endl;
-		cout << "You can change it in " << GREEN << "src/db/FS.h" << RESET << endl;
+		std::cout << "Using " << GREEN << "\"" << db::dbPath << "\"" << RESET << " as " << CYAN << "database" << RESET << " directory" << std::endl;
+		std::cout << "You can change it in " << GREEN << "src/db/FS.h" << RESET << std::endl;
 	}else{
-		cout << RED << "Can't find dir \"" << db::dbPath << "\" (it must be used as database directory)" << endl;
-		cout << "You can change it in src/db/FS.h" << endl;
+		std::cout << RED << "Can't find dir \"" << db::dbPath << "\" (it must be used as database directory)" << std::endl;
+		std::cout << "You can change it in src/db/FS.h" << std::endl;
 		return 0;
 	}
 
-	cout << "Type " << GREEN << "'exit'" << RESET << " to exit the program" << endl;
-	string command;
-	cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
+	std::cout << "Type " << GREEN << "'exit'" << RESET << " to exit the program" << std::endl;
+	std::string command;
+	std::cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
 	do {
-		stringstream error;
+		std::stringstream error;
 		if(!command.empty()){
 #if AYDANDB_CATCH_EXCEPTIONS
 			try {
 #endif
-				cout << parser::Parser::parse(command);
+				std::cout << parser::Parser::parse(command);
 #if AYDANDB_CATCH_EXCEPTIONS
 			}catch(binary::Exception &e){
 				error << RED << "binary::Exception: " << RESET << e.what();
@@ -86,14 +84,14 @@ int main(){
 			}
 #endif
 			if(!error.str().empty()){ // eof() адекватно не работает
-				cout << command << endl;
+				std::cout << command << std::endl;
 				auto errIndex = distance(parser::Parser::begin, parser::Parser::iterator);
-				cout << string(errIndex, ' ') << BOLDCYAN << '^' << RESET << endl;
-				cout << error.str();
+				std::cout << std::string(errIndex, ' ') << BOLDCYAN << '^' << RESET << std::endl;
+				std::cout << error.str();
 			}
-			cout << endl;
-			cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
+			std::cout << std::endl;
+			std::cout << BOLDMAGENTA << "aydan_db" << YELLOW << "> " << RESET;
 		}
-		getline(cin, command);
+		getline(std::cin, command);
 	}while(command != "exit");
 }

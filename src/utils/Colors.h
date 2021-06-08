@@ -1,6 +1,7 @@
 
 #pragma once
 
+#if WINDOWS
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
@@ -18,3 +19,22 @@
 #define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+#else
+#define RESET   ""  // На винде цветов нет я так понял
+#define BLACK   ""      /* Black */
+#define RED     ""      /* Red */
+#define GREEN   ""      /* Green */
+#define YELLOW  ""      /* Yellow */
+#define BLUE    ""      /* Blue */
+#define MAGENTA ""      /* Magenta */
+#define CYAN    ""      /* Cyan */
+#define WHITE   ""      /* White */
+#define BOLDBLACK   ""      /* Bold Black */
+#define BOLDRED     ""      /* Bold Red */
+#define BOLDGREEN   ""      /* Bold Green */
+#define BOLDYELLOW  ""      /* Bold Yellow */
+#define BOLDBLUE    ""      /* Bold Blue */
+#define BOLDMAGENTA ""      /* Bold Magenta */
+#define BOLDCYAN    ""      /* Bold Cyan */
+#define BOLDWHITE   ""      /* Bold White */
+#endif
