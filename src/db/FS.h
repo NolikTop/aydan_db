@@ -9,7 +9,7 @@ namespace db {
 
 	// ПУТЬ ОБЯЗАТЕЛЬНО ДОЛЖЕН В КОНЦЕ СОДЕРЖАТЬ СЛЕШ!!!
 	const std::string dbPath = "/Users/noliktop/Desktop/aydan_db/db/"; // NOLINT(cert-err58-cpp)
-	//C:\\Users\\aydan\\Desktop\\aydan_db\\
+	//C:\\Users\\aydan\\Desktop\\aydan_db\\db\\
 
 	class FS {
 

@@ -28,7 +28,7 @@ void Parser::initTypes() {
 
 void Parser::skipEmpty(std::string::iterator end, std::string expected, bool skipComma, bool skipCloseParenthesis) {
 	auto& it = Parser::iterator;
-    for(; (isspace(*it) || (skipCloseParenthesis && *it == ')') || (skipComma && *it == ',')) && it != end; it++); // скипаем до момента когда можно будет читать
+    for(; it != end && (isspace(*it) || (skipCloseParenthesis && *it == ')') || (skipComma && *it == ',')); it++); // скипаем до момента когда можно будет читать
     if(it == end){
     	if(!expected.empty()){
 		    throw Exception("Empty value until the end. Expected " + expected);
@@ -46,7 +46,7 @@ std::string Parser::nextWord(std::string::iterator end, const std::function<bool
 		expected = "word";
 	}
     skipEmpty(end, expected);
-	for(; check(*it) && it != end; it++){
+	for(; it != end && check(*it); it++){
 		res += (char)std::tolower(*it);
 	}
 

@@ -1,7 +1,9 @@
 
 #pragma once
 
-#if WINDOWS
+#define SHOW_COLORS 1
+
+#if SHOW_COLORS
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
