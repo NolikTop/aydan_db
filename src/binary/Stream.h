@@ -49,26 +49,26 @@ namespace binary {
 		void writeSignedByte(int8_t value);
 		[[nodiscard]] int8_t readSignedByte();
 
-		void writeUnsignedByte(u_int8_t value);
-		[[nodiscard]] u_int8_t readUnsignedByte();
+		void writeUnsignedByte(uint8_t value);
+		[[nodiscard]] uint8_t readUnsignedByte();
 
 		void writeSignedShort(int16_t value);
 		[[nodiscard]] int16_t readSignedShort();
 
-		void writeUnsignedShort(u_int16_t value);
-		[[nodiscard]] u_int16_t readUnsignedShort();
+		void writeUnsignedShort(uint16_t value);
+		[[nodiscard]] uint16_t readUnsignedShort();
 
 		void writeSignedInt32(int32_t value);
 		[[nodiscard]] int32_t readSignedInt32();
 
-		void writeUnsignedInt32(u_int32_t value);
-		[[nodiscard]] u_int32_t readUnsignedInt32();
+		void writeUnsignedInt32(uint32_t value);
+		[[nodiscard]] uint32_t readUnsignedInt32();
 
 		void writeSignedLong(int64_t value);
 		[[nodiscard]] int64_t readSignedLong();
 
-		void writeUnsignedLong(u_int64_t value);
-		[[nodiscard]] u_int64_t readUnsignedLong();
+		void writeUnsignedLong(uint64_t value);
+		[[nodiscard]] uint64_t readUnsignedLong();
 
 		void dump();
 

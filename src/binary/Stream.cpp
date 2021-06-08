@@ -160,11 +160,11 @@ int8_t Stream::readSignedByte(){
 	return (int8_t)readNumber(sizeof(int8_t));
 }
 
-void Stream::writeUnsignedByte(u_int8_t value) {
+void Stream::writeUnsignedByte(uint8_t value) {
 	writeNumber(sizeof(int8_t), value);
 }
 
-u_int8_t Stream::readUnsignedByte(){
+uint8_t Stream::readUnsignedByte(){
 	return (int8_t)readNumber(sizeof(int8_t));
 }
 
@@ -176,12 +176,12 @@ int16_t Stream::readSignedShort(){
 	return (int16_t) readNumber(sizeof(int16_t));
 }
 
-void Stream::writeUnsignedShort(u_int16_t value) {
-	writeNumber(sizeof(u_int16_t), value);
+void Stream::writeUnsignedShort(uint16_t value) {
+	writeNumber(sizeof(uint16_t), value);
 }
 
-u_int16_t Stream::readUnsignedShort(){
-	return (u_int16_t) readNumber(sizeof(int16_t));
+uint16_t Stream::readUnsignedShort(){
+	return (uint16_t) readNumber(sizeof(int16_t));
 }
 
 void Stream::writeSignedInt32(int32_t value) {
@@ -192,12 +192,12 @@ int32_t Stream::readSignedInt32(){
 	return (int32_t) readNumber(sizeof(int32_t));
 }
 
-void Stream::writeUnsignedInt32(u_int32_t value) {
-	writeNumber(sizeof(u_int32_t), value);
+void Stream::writeUnsignedInt32(uint32_t value) {
+	writeNumber(sizeof(uint32_t), value);
 }
 
-u_int32_t Stream::readUnsignedInt32(){
-	return (u_int32_t) readNumber(sizeof(u_int32_t));
+uint32_t Stream::readUnsignedInt32(){
+	return (uint32_t) readNumber(sizeof(uint32_t));
 }
 
 void Stream::writeSignedLong(int64_t value) {
@@ -208,12 +208,12 @@ int64_t Stream::readSignedLong(){
 	return readNumber(sizeof(int64_t));
 }
 
-void Stream::writeUnsignedLong(u_int64_t value) {
-	writeNumber(sizeof(u_int64_t), (int64_t) value);
+void Stream::writeUnsignedLong(uint64_t value) {
+	writeNumber(sizeof(uint64_t), (int64_t) value);
 }
 
-u_int64_t Stream::readUnsignedLong(){
-	return readNumber(sizeof(u_int64_t));
+uint64_t Stream::readUnsignedLong(){
+	return readNumber(sizeof(uint64_t));
 }
 
 void Stream::dump() {

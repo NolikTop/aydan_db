@@ -40,7 +40,7 @@ TEST(Stream, byte){
 
 TEST(Stream, short){
 	auto s = getStream();
-	u_int16_t unsignedNumber = 0xFFAA;
+	uint16_t unsignedNumber = 0xFFAA;
 	int16_t signedNumber = -0x0002;
 	auto data = (byte*)"\xAA\xFF";
 	auto dataSigned = (byte*)"\xFE\xFF";
@@ -62,7 +62,7 @@ TEST(Stream, short){
 
 TEST(Stream, int){
 	auto s = getStream();
-	u_int32_t unsignedNumber = 0xFFAABBCC;
+	uint32_t unsignedNumber = 0xFFAABBCC;
 	int32_t signedNumber = -0x00000002;
 	auto data = (byte*)"\xCC\xBB\xAA\xFF";
 	auto dataSigned = (byte*)"\xFE\xFF\xFF\xFF";
@@ -82,7 +82,7 @@ TEST(Stream, int){
 
 TEST(Stream, long){
 	auto s = getStream();
-	u_int64_t unsignedNumber = 0xFFAABBCCDDEE1122;
+	uint64_t unsignedNumber = 0xFFAABBCCDDEE1122;
 	int64_t signedNumber = -0x0000000000000002;
 	auto data = (byte*)"\x22\x11\xEE\xDD\xCC\xBB\xAA\xFF";
 	auto dataSigned = (byte*)"\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF";
