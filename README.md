@@ -115,6 +115,7 @@ drop table `users`
     база данных скажет что папки базы данных нет, а в худшем случае (на Windows) база данных скажет, что на Windows не поддерживаются слеши в пути к файлу.
     !!! Обратите внимание, что в конце пути должен быть слеш (=обратный слеш если вы на Windows).
 9) Если все предыдущие пункты выполнены верно, значит будет работать. Запускайте конфигурацию `aydan_db_run`
+10) Если при запуске программы выводится какой-то бред — попробуйте в `src/utils/Colors.h` изменить макрос `SHOW_COLORS` на `0`. Если не помогло, то проверьте кодировку.
 
 ![](https://sun9-60.userapi.com/impg/jlvZhB4YwXRjs2eGX-Y1FiWd_ItyCG0k2fZefQ/szvagyu21eM.jpg?size=458x168&quality=96&sign=cb73b166c27cdc040d45676fdc5286cb&type=album)
 ![](https://sun9-27.userapi.com/impg/1gYAkZ4KOIisQC-00BOs-BdGRzD9vukqhLbQwQ/6QNw5yACUuU.jpg?size=456x158&quality=96&sign=0b5d3dac1abd2842ed061f2f4c66abe9&type=album)
