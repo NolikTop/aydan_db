@@ -3,7 +3,6 @@
 
 #include <string>
 #include "Token.h"
-#include "Operation.h"
 #include "UserValueToken.h"
 #include <list/List.h>
 #include <db/Column.h>

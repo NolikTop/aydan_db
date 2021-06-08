@@ -7,7 +7,6 @@
 #include <parser/type/StringToken.h>
 #include <binary/Stream.h>
 #include <db/Row.h>
-#include "Operation.h"
 #include "Parser.h"
 #include "Exception.h"
 #include <utils/Colors.h>
@@ -270,13 +269,6 @@ std::string Parser::parse(std::string query) {
 	Parser::begin = query.begin();
 
 	auto opRaw = nextKeyword(query.end(), "operation name");
-	/*if(it == query.end()) {
-		throw Exception("Unexpected end of operation name \"" + opRaw + "\"");
-	}
-
-	if(*it != ' '){
-		throw Exception("Unknown operation \"" + opRaw + *it + "\"");
-	}*/
 	std::string res;
 
 	if(opRaw == "select"){
