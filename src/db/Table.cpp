@@ -27,12 +27,16 @@ columns(columns), autoIncrementId(autoIncrementId)
 	if(columns->len() > 255){
 		throw Exception("Max columns amount is 255");
 	}
+	this->primaryKey = nullptr;
 	for(auto i = columns->first; i != nullptr; i = i->next){
 		if(i->element->primaryKey){
+			if(this->primaryKey != nullptr){
+				throw Exception("Excess primary key column \"" + i->element->name + "\". There is another primary key column \"" + this->primaryKey->name + "\"");
+			}
 			this->primaryKey = i->element;
-			return;
 		}
 	}
+	if(this->primaryKey != nullptr) return;
 
 	throw Exception("Couldn't find primaryKey column");
 }
@@ -79,6 +83,39 @@ void Table::createFiles() {
 
 void Table::appendRow(Row* row) {
 	row->checkForFilled();
+
+	auto primaryKeyColIndex = 0;
+	for(auto cElement = row->columns->first; cElement != nullptr; cElement = cElement->next, primaryKeyColIndex++){
+		if(cElement->element->primaryKey){
+			break;
+		}
+	}
+
+	auto primaryKeyValue = row->values->at(primaryKeyColIndex);
+
+	list::List<Row>* rows;
+	if(primaryKeyValue->type == CT_STRING) {
+		auto val = (dynamic_cast<parser::UserValueToken<std::string> *>(primaryKeyValue))->value;
+
+		rows = this->find<std::string>(this->primaryKey,
+           [&val](std::string tVal) {
+               return tVal == val;
+           }
+		);
+	}else if(primaryKeyValue->type == CT_NUMBER) {
+		auto val = (dynamic_cast<parser::UserValueToken<int32_t> *>(primaryKeyValue))->value;
+
+		rows = this->find<int32_t>(this->primaryKey,
+           [&val](int32_t tVal) {
+               return tVal == val;
+           }
+		);
+	}else{
+		throw Exception("Unknown type");
+	}
+	if(rows->len() > 0){
+		throw Exception("Cant add row due to there are different row(s) with same primary key value " + primaryKeyValue->toCleanString());
+	}
 
 	auto bs = new binary::Stream();
 

@@ -249,6 +249,10 @@ db::Column *Parser::readColumn(std::string::iterator end) {
 		throw Exception("Unknown keyword \"" + nextWord + "\"");
 	}
 
+	if(type != db::CT_NUMBER){
+		throw Exception("Only number type can be auto incremented");
+	}
+
 	skipEmpty(end, "useless space before end", false, false);
 
 	if(*it == ',' || *it == ')') {
@@ -478,12 +482,21 @@ std::string Parser::runSelect(std::string &query) {
 	list::List<db::Row>* rows;
 
 	if(it == end || std::next(it) == end){
-		rows = table->find<int32_t>( // primary key всегда int32_t
-			table->primaryKey,
-			[](int32_t value) {
-				return true;
-			}
-		);
+		if(table->primaryKey->type == db::CT_NUMBER) {
+			rows = table->find<int32_t>(
+				table->primaryKey,
+				[](int32_t value) {
+					return true;
+				}
+			);
+		}else{
+			rows = table->find<std::string>(
+				table->primaryKey,
+				[](std::string value) {
+					return true;
+				}
+			);
+		}
 	}else{
 		str = nextKeyword(end, "\"where\" keyword");
 		if (str != "where") {
