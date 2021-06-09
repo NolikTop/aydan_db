@@ -5,6 +5,7 @@
 #include <string>
 #include "Stream.h"
 #include "Exception.h"
+#include <cstring>
 
 using namespace binary;
 
